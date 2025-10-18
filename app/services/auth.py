@@ -1,9 +1,9 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
-from jose import JNTError, jwt
-from app.config import SECRET_KEY, ALGORITHM, ACCES_TOKEN_EXPIRE_MINUTES
+from jose import JWTError, jwt
+from config import SECRET_KEY, ALGORITHM, ACCES_TOKEN_EXPIRE_MINUTES
 
-pwd_context = CryptContext(schemes=[bcrypt],derecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"],deprecated="auto")
 
 def get_password_hash(password):
     return pwd_context.hash(password)

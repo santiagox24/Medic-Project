@@ -3,20 +3,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 
-from app.database import get_db
-from app.models.user import User
-from app.schemas.user import UserCreate, UserRead
-from app.services.auth import get_password_hash
+from database import get_db
+from models.user import User
+from schemas.user import UserCreate
+from services.auth import get_password_hash
 
-router = APIRouter(prefix="/user",tags=("users"))
+router = APIRouter(prefix="/users",tags=["users"])
 
 @router.post("/register",status_code=status.HTTP_201_CREATED)
 async def register_user(
     user: UserCreate,
-    db: AsyncSession = Depends (get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     stmt = select(User).where(User.document_id == user.document_id)
-    result = await db.execute (stmt)
+    result = await db.execute(stmt)
     existing_user = result.scalars().first()
 
 

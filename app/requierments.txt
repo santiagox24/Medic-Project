@@ -40,3 +40,5 @@ uvicorn==0.35.0
 uvloop==0.21.0
 watchfiles==1.1.0
 websockets==15.0.1
+passlib[bcrypt]
+python-jose[cryptography]

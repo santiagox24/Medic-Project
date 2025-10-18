@@ -9,7 +9,7 @@ class UserBase(BaseModel):
     tel: str
     age: int
     gender: str
-    adress: str
+    address: str
     city: str
     country: str
 

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from app.config import DATABASE_URL
-from app.models import Base
+from config import DATABASE_URL
+from models import Base
 from datetime import datetime,timezone
 
 
