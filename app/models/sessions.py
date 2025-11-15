@@ -1,15 +1,13 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
-from config import DATABASE_URL
-from models import Base
-from datetime import datetime,timezone
+from sqlalchemy import String, ForeignKey, Integer, DateTime
+from sqlalchemy.orm import sessionmaker, Mapped, mapped_column
+from database import Base
+from datetime import datetime
 
 
 class Session(Base):
     __tablename__ = "sessions"
 
     id: Mapped[int] = mapped_column(Integer,primary_key=True)
-    user_id: Mapped[str] = mappedcolumn(String,ForeignKey("users.document_id"))
-    date : Mapped[datetime] = mappecolumn(DateTime,nullable=False)
-    anylisis : Mapped[str] = mapped_column()
-    users : Mapped["User"] = relationship(back_populates="sessions")
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.document_id"))
+    date : Mapped[datetime] = mapped_column(DateTime(timezone=True),nullable=False)
+    #analysis : Mapped[str] = mapped_column()

@@ -16,7 +16,7 @@ class User(Base):
     age : Mapped[int] = mapped_column()
     gender : Mapped[str] = mapped_column()
     address : Mapped[str] = mapped_column()
-    city : Mapped[str] = mapped_column(String)
+    city : Mapped[str] = mapped_column()
     country: Mapped[str] = mapped_column()
 
    

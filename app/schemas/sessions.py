@@ -6,6 +6,7 @@ from datetime import datetime
 class SessionBase(BaseModel):
     date: datetime
     questions: str
+    #analysis: str
 
 
 class SessionCreate(SessionBase):
@@ -22,4 +23,4 @@ class SessionRead(SessionBase):
     answers: str
 
     class Config:
-        orm_models=True
+        orm_mode=True
