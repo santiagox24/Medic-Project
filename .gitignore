@@ -1,0 +1,82 @@
+# -------------------------------
+# General
+# -------------------------------
+*.log
+*.tmp
+*.swp
+*.DS_Store
+*.env
+*.env.*
+!*.env.example
+
+# -------------------------------
+# Python / FastAPI backend
+# -------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.cache/
+.venv/
+venv/
+ENV/
+.envrc
+
+# FastAPI specific
+instance/
+*.db
+*.sqlite3
+
+# -------------------------------
+# Node / React frontend
+# -------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+coverage/
+build/
+.cache/
+.next/
+out/
+*.tsbuildinfo
+
+# React testing
+jest.config.js
+/coverage
+
+# -------------------------------
+# Editor & IDE files
+# -------------------------------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# -------------------------------
+# Docker
+# -------------------------------
+/docker-compose.override.yml
+/.docker/
+
+# -------------------------------
+# OpenAI & API Keys
+# -------------------------------
+# (store secrets in .env, never commit API keys!)
+openai_api_key.txt
+reinciar_docker.zsh
