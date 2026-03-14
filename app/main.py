@@ -12,9 +12,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="medic project", lifespan=lifespan)
 
 origins =[
-    "http://=0.0.0.0:8000",
-    "http://localhost:8000"
-    "http://127.0.0.1:5173"
+    "http://localhost:8000",
+    "http://127.0.0.1:5173",
+    "http://0.0.0.0:8000",
 ]
 
 app.add_middleware(

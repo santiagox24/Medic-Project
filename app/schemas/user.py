@@ -1,11 +1,13 @@
 from pydantic import BaseModel, EmailStr
+from pydantic import ConfigDict
 from typing import Optional
+
 
 class UserBase(BaseModel):
     document_id: str
     username: str
     name: str
-    email: str
+    email: EmailStr
     tel: str
     age: int
     gender: str
@@ -13,12 +15,12 @@ class UserBase(BaseModel):
     city: str
     country: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(UserBase):
     password: str
+
 
 class UserLogin(BaseModel):
     username: str

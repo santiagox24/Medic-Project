@@ -10,24 +10,27 @@ from jose import jwt, JWTError
 import os
 
 
-router = APIRouter(prefix="/auth",tags=["auth"])
-oauth2_scheme= OAuth2PasswordBearer(tokenUrl="token")
 
-API_BASE_URL = os.getenv("API_BASE-URL","http://localgost:8000")
+router = APIRouter(prefix="/auth", tags=["auth"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+
+# Base URL for API (fix env var name and default)
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
 
 @router.post("/token")
 async def login(
-    form_data:OAuth2PasswordRequestForm = Depends(),
-    db : AsyncSession = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db),
 ):
-    stmt : select(User).where(User.username == form_data.username)
+    stmt = select(User).where(User.username == form_data.username)
     result = await db.execute(stmt)
-    user=result.scalars.first()
+    user = result.scalars().first()
 
-    if not user or not verify_password(form_data.password,user.hashed_password):
-        raise HTTPException(status_code=401,detail="Incorrect username")
-    
-    access_token = create_access_token(data={"sub" : user.document_id})
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
 
-    return {"acces_token" : access_token, "token_type":"bearer"}
+    access_token = create_access_token(data={"sub": user.document_id})
+
+    return {"access_token": access_token, "token_type": "bearer"}
+

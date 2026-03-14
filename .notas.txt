@@ -1,0 +1,4 @@
+24/01/26 Sábado: 
+    Se encontró una inconsistencia en los datos de la ruta /sessions/. 
+07/02/26 Sábado: 
+    Para la proxima clase: Reescribir los campos de las bases de datos.

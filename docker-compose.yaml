@@ -1,34 +1,33 @@
 services:
 
-    db:
-      image: postgres:latest
-      container_name: postgres_container
-      ports:
-        - "5432:5432"
-      env_file: 
-        - ./.env
-      environment:
-        POSTGRES_USER: ${POSTGRES_USER}
-        POSTGRES_DB: ${POSTGRES_DB}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-        
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: postgres_container
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
-    app:
-      build:
-        context: ./app
-      container_name: fastapi_app
-      depends_on:
-        - db
-      ports:
-       - "8000:8000"
-      env_file:
-        ./.env
-      environment:
-        DATABASE_URL: ${POSTGRES_URL}
-      command: uvicorn main:app --host 0.0.0.0 --port 8000
-      
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: ./app
+    container_name: fastapi_app
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: ${POSTGRES_URL}
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
 
 volumes:
   postgres_data:
