@@ -1,5 +1,4 @@
 services:
-
   db:
     image: pgvector/pgvector:pg17
     container_name: postgres_container
@@ -11,16 +10,22 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # This checks if Postgres is actually ready to accept connections
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   app:
     build:
       context: ./app
     container_name: fastapi_app
     depends_on:
-      - db
+      db:
+        condition: service_healthy # This is the fix for "Connection Refused"
     ports:
       - "8000:8000"
     env_file:

@@ -5,8 +5,9 @@ from datetime import datetime
 
 class SessionBase(BaseModel):
     date: datetime
-    questions: str
-    #analysis: str
+    question: Optional[str] = None
+    answer: Optional[str] = None
+    analysis: Optional[str] = None
 
 
 class SessionCreate(SessionBase):
@@ -14,12 +15,11 @@ class SessionCreate(SessionBase):
 
 class SessionUpdate(BaseModel):
     answer: str
+    analysis: Optional[str] = None
 
 
 class SessionRead(SessionBase):
-    id:int
-    user_id:str
-    questions: str
-    answers: str
+    id: int
+    user_id: str
 
     model_config = ConfigDict(from_attributes=True)

@@ -44,3 +44,4 @@ passlib==1.7.4
 bcrypt==4.1.2
 python-jose[cryptography]
 openai>=1.0.0
+pgvector==0.3.6

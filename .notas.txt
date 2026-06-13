@@ -2,3 +2,10 @@
     Se encontró una inconsistencia en los datos de la ruta /sessions/. 
 07/02/26 Sábado: 
     Para la proxima clase: Reescribir los campos de las bases de datos.
+14/03/26 Sábado:
+    Se retomo el trabajo ya hecho. Hay que empezar a reescribir la base de datos a vectorial.
+11/04/26 Sábado:
+    La inconsistencia en la ruta sessions es que pide los datos question y answer, los cuales se guardarian vectorialmente. Por esta razon, se los va a poner como campos opcionales para poder probar el endpoint de sessions. Al probarlo, funciona perfectamente.
+    La base de datos vectorial va a ser hecha con pgvector. 
+    Para la proxima clase, modificar models sessions.py y el schema de sessions.py. Como hacerlo esta en la conversacion con Claude de Harold.
+    
