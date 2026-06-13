@@ -9,9 +9,14 @@ async def lifespan(app: FastAPI):
     await init_db()
     yield
 
-app = FastAPI(title="medic project", lifespan=lifespan)
+app = FastAPI(
+    title="Medic Project API",
+    description="Asistente médico con capacidades de búsqueda vectorial e IA.",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
-origins =[
+origins = [
     "http://localhost:8000",
     "http://127.0.0.1:5173",
     "http://0.0.0.0:8000",
@@ -25,9 +30,13 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-@app.get("/")
+@app.get("/", tags=["root"])
 def read_root():
-    return{"Hello" : "world"}
+    return {
+        "project": "Medic Project API",
+        "status": "online",
+        "features": ["Auth", "Vector Search", "LLM Integration"]
+    }
 
 app.include_router(auth.router)
 app.include_router(user.router)

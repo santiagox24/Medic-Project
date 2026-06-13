@@ -22,13 +22,13 @@ async def register_user(
 
     if existing_user:
         raise HTTPException(
-            status_code = status.HTTP_400_BAD_REQUEST,
-            detail="Theres a user that alredy exists with this document id."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="There is a user that already exists with this document id."
         )
 
     hashed_password = get_password_hash(user.password)
 
-    db_user = User(**user.dict(exclude={"password"}),hashed_password=hashed_password)
+    db_user = User(**user.model_dump(exclude={"password"}), hashed_password=hashed_password)
     db.add(db_user)
 
     try:
