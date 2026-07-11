@@ -1,0 +1,6 @@
+El objetivo de este programa es:
+1. Crear una pagina en la cual se pueda interactuar con un modelo de lenguaje para obtener información médica.
+2. Las sesiones de la IA, son por usuario individual.
+3. Cada sesion del usuario con la IA recuerda las sesiones anteriores, con sus fechas.
+4. Cada sesion individual tiene un chat de conversacion con la IA.
+

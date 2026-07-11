@@ -11,6 +11,7 @@ class Session(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.document_id"))
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=True)
     
     question: Mapped[str] = mapped_column(String, nullable=True)
     question_vector: Mapped[list] = mapped_column(Vector(1536), nullable=True)

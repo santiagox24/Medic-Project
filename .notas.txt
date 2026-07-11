@@ -8,4 +8,8 @@
     La inconsistencia en la ruta sessions es que pide los datos question y answer, los cuales se guardarian vectorialmente. Por esta razon, se los va a poner como campos opcionales para poder probar el endpoint de sessions. Al probarlo, funciona perfectamente.
     La base de datos vectorial va a ser hecha con pgvector. 
     Para la proxima clase, modificar models sessions.py y el schema de sessions.py. Como hacerlo esta en la conversacion con Claude de Harold.
-    
+13/06/26 Sábado:
+    Hoy, con ayuda de Antigravity, se pudo avanzar mucho en el proyecto. Se corrigieron errores de sintaxis, se implementaron nuevas funcionalidades de la base de datos vectorial y se mejoró la estructura del código.
+    Para la proxima clase, implementar la interfaz grafica. 
+20/06/26 Sábado:
+    Hoy se empezo a construir la interfaz grafica con la ayuda de Antigravity. Para la siguiente clase, se debe conectar la intefaz grafica con el backend. A futuro, hay que trabajar con la interfaz grafica para iniciar sesion y registrarse. 

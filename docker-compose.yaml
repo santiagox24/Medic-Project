@@ -34,5 +34,19 @@ services:
       DATABASE_URL: ${POSTGRES_URL}
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: react_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - app
+
 volumes:
   postgres_data:

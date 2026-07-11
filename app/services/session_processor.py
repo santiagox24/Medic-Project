@@ -40,6 +40,7 @@ async def process_new_session(db: AsyncSession, session_data: SessionCreate) -> 
     new_session = Session(
         user_id=session_data.user_id,
         date=session_data.date,
+        title=session_data.title,
         question=session_data.question,
         question_vector=q_vector,
         answer=answer_text,
