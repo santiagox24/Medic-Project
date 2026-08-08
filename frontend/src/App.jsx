@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Calendar, 
@@ -10,21 +10,54 @@ import {
   ArrowRight,
   Plus,
   Trash2,
-  Loader2
+  Loader2,
+  LogOut
 } from 'lucide-react';
 import axios from 'axios';
+import Auth from './components/Auth';
 
 // API configuration
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
 });
 
+// Configure client request interceptor to attach Bearer token
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('medic_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 const App = () => {
+  const [token, setToken] = useState(localStorage.getItem('medic_token'));
+  const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchingUser, setFetchingUser] = useState(false);
 
-  // Fetch real sessions from backend
+  // Fetch actual user profile information
+  const fetchUserProfile = async () => {
+    setFetchingUser(true);
+    try {
+      const response = await API.get('/users/me');
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      if (error.response?.status === 401) {
+        handleLogout();
+      }
+    } finally {
+      setFetchingUser(false);
+    }
+  };
+
+  // Fetch sessions
   const fetchSessions = async () => {
     try {
       const response = await API.get('/sessions/');
@@ -35,16 +68,32 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchSessions();
-  }, []);
+    if (token) {
+      fetchUserProfile();
+      fetchSessions();
+    }
+  }, [token]);
+
+  const handleLoginSuccess = (newToken) => {
+    localStorage.setItem('medic_token', newToken);
+    setToken(newToken);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('medic_token');
+    setToken(null);
+    setUser(null);
+    setSessions([]);
+  };
 
   const handleCreateSession = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      // Create a real session via backend
+      // Create a real session via backend using logged user identifier
       await API.post('/sessions/', {
         date: new Date().toISOString(),
-        user_id: "1000123456", // Mock user for now
+        user_id: user.document_id,
         title: `Nueva Sesión - ${new Date().toLocaleDateString()}`,
         question: "Sesión inicializada"
       });
@@ -65,8 +114,26 @@ const App = () => {
     }
   };
 
+  // If not logged in, render Auth flow
+  if (!token) {
+    return <Auth onLoginSuccess={handleLoginSuccess} API={API} />;
+  }
+
+  // Helper for user initials
+  const getUserInitials = () => {
+    if (!user?.name) return "U";
+    const parts = user.name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+  };
+
+  // Only display sessions corresponding to authenticated user
+  const userSessions = sessions.filter(s => s.user_id === user?.document_id);
+
   return (
-    <div className="flex h-screen medical-gradient">
+    <div className="flex h-screen medical-gradient text-slate-50">
       {/* Sidebar */}
       <aside className="w-64 glass-panel m-4 rounded-3xl flex flex-col p-6 space-y-8 z-10">
         <div className="flex items-center space-x-3 px-2">
@@ -83,15 +150,34 @@ const App = () => {
           <SidebarItem icon={<MessageSquare />} label="Mensajes" active={activeTab === 'messages'} onClick={() => setActiveTab('messages')} />
         </nav>
 
-        <div className="pt-6 border-t border-slate-800">
+        <div className="pt-6 border-t border-slate-800 space-y-4">
           <SidebarItem icon={<Settings />} label="Configuración" />
-          <div className="mt-4 p-4 bg-slate-800/40 rounded-2xl flex items-center space-x-3">
-            <div className="w-10 h-10 bg-medic-400 rounded-full flex items-center justify-center font-bold text-slate-900 border-2 border-medic-500">
-              SM
-            </div>
+          
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-4 px-4 py-3 rounded-2xl transition-all text-red-400 hover:bg-red-500/10 hover:text-red-300 font-semibold text-sm"
+          >
+            <LogOut size={20} />
+            <span>Cerrar Sesión</span>
+          </button>
+
+          <div className="p-4 bg-slate-800/40 rounded-2xl flex items-center space-x-3 border border-slate-700/30">
+            {fetchingUser ? (
+              <div className="w-10 h-10 bg-slate-850 rounded-full flex items-center justify-center border border-slate-700">
+                <Loader2 className="w-4 h-4 animate-spin text-medic-400" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 bg-medic-400 rounded-full flex items-center justify-center font-bold text-slate-900 border-2 border-medic-500 shadow-md">
+                {getUserInitials()}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">Dr. Santiago M.</p>
-              <p className="text-xs text-slate-400 truncate">Neurología</p>
+              <p className="text-sm font-semibold truncate text-slate-200">
+                {user ? `Dr. ${user.name}` : 'Cargando...'}
+              </p>
+              <p className="text-xs text-slate-400 truncate">
+                {user ? `${user.city}, ${user.country}` : 'Médico General'}
+              </p>
             </div>
           </div>
         </div>
@@ -104,13 +190,13 @@ const App = () => {
             <h1 className="text-3xl font-bold text-white">Mis Sesiones</h1>
             <div className="flex items-center space-x-4">
               <button className="p-2 hover:bg-slate-800 rounded-full transition-colors relative">
-                <Bell className="w-6 h-6" />
+                <Bell className="w-6 h-6 text-slate-350" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
               <div className="h-8 w-px bg-slate-800 mx-2"></div>
               <button 
                 onClick={handleCreateSession}
-                disabled={loading}
+                disabled={loading || !user}
                 className="flex items-center space-x-3 bg-medic-600 hover:bg-medic-500 text-white px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-medic-900/20 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6" />}
@@ -120,24 +206,37 @@ const App = () => {
           </header>
 
           <div className="grid grid-cols-1 gap-4">
-            <MetricCard label="Sesiones Completadas" value="128" change="+12% mensual" color="blue" />
+            <MetricCard label="Sesiones Completadas" value={userSessions.length.toString()} change="+12% mensual" color="blue" />
           </div>
 
           <div className="glass-panel flex-1 p-8 flex flex-col min-h-0 bg-slate-900/40">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold">Sesiones Recientes</h3>
+              <h3 className="text-2xl font-bold text-slate-100">Sesiones Recientes</h3>
               <button className="text-medic-400 text-sm font-semibold hover:underline">Ver todas</button>
             </div>
-            <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-              {sessions.map((session) => (
-                <SessionRow 
-                  key={session.id} 
-                  title={session.title} 
-                  date={session.date} 
-                  onDelete={() => handleDeleteSession(session.id)}
-                />
-              ))}
-            </div>
+            
+            {userSessions.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-500 space-y-3">
+                <div className="p-4 bg-slate-800/10 rounded-full border border-slate-800/30">
+                  <MessageSquare className="w-10 h-10 text-slate-600" />
+                </div>
+                <p className="text-base font-semibold text-slate-400">No hay sesiones creadas todavía</p>
+                <p className="text-xs text-slate-500 text-center max-w-sm">
+                  Haz clic en el botón "Nueva Sesión" de arriba para inicializar un registro clínico.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+                {userSessions.map((session) => (
+                  <SessionRow 
+                    key={session.id} 
+                    title={session.title} 
+                    date={session.date ? new Date(session.date).toLocaleString() : 'Fecha no especificada'} 
+                    onDelete={() => handleDeleteSession(session.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -154,7 +253,7 @@ const SidebarItem = ({ icon, label, active = false, onClick = () => {} }) => (
         : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
     }`}
   >
-    <div className={`transition-transform group-hover:scale-110 ${active ? 'text-medic-400' : ''}`}>
+    <div className={`transition-transform group-hover:scale-110 ${active ? 'text-medic-400' : 'text-slate-400'}`}>
       {React.cloneElement(icon, { size: 20 })}
     </div>
     <span className="font-semibold text-sm">{label}</span>

@@ -13,3 +13,6 @@
     Para la proxima clase, implementar la interfaz grafica. 
 20/06/26 Sábado:
     Hoy se empezo a construir la interfaz grafica con la ayuda de Antigravity. Para la siguiente clase, se debe conectar la intefaz grafica con el backend. A futuro, hay que trabajar con la interfaz grafica para iniciar sesion y registrarse. 
+11/07/26 Sábado:
+    Para poder seguir desarrollando la página y que esta funcione correctamente vamos a empezar a crear la página en el frontend de autenticación y a vincularla con su respectivo endpoint.
+    Con la ayuda de Antigravity, logramos conectar la interfaz grafica con el backend. Además, se construyo la interfaz grafica del registro y login, la cual se vinculo con sus endpoints, funcionando correctamente. La funcion de crear sesion no funciona correctamente ya que no tiene vinculada la key de la I.A. 

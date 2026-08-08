@@ -44,3 +44,51 @@ async def register_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al registrar al usuario : {str(e)}"
             )
+
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+from config import SECRET_KEY, ALGORITHM
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+
+@router.get("/me")
+async def get_current_user_profile(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        document_id: str = payload.get("sub")
+        if document_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token no contiene subject."
+            )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales de acceso inválidas."
+        )
+
+    stmt = select(User).where(User.document_id == document_id)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado."
+        )
+
+    return {
+        "document_id": user.document_id,
+        "username": user.username,
+        "name": user.name,
+        "email": user.email,
+        "tel": user.tel,
+        "age": user.age,
+        "gender": user.gender,
+        "address": user.address,
+        "city": user.city,
+        "country": user.country
+    }
