@@ -16,3 +16,5 @@
 11/07/26 Sábado:
     Para poder seguir desarrollando la página y que esta funcione correctamente vamos a empezar a crear la página en el frontend de autenticación y a vincularla con su respectivo endpoint.
     Con la ayuda de Antigravity, logramos conectar la interfaz grafica con el backend. Además, se construyo la interfaz grafica del registro y login, la cual se vinculo con sus endpoints, funcionando correctamente. La funcion de crear sesion no funciona correctamente ya que no tiene vinculada la key de la I.A. 
+08/08/26 Sábado:
+    Hoy decidimos cambiar el enfoque del programa, ya que el que llevabamos no tenia diferenciacion con cualquier otro modelo de intelige artificial. Este va a ser un programa dirigido a medicos que permita almacenar y analizar la información de los pacientes teniendo la inteligencia artificial como apoyo para el diagnostico y tratamiento de los pacientes. Hay que seguir desarrollandolo. Se utilizo Lovable para pueba de concepto demo. 

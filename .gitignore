@@ -80,3 +80,4 @@ jest.config.js
 # (store secrets in .env, never commit API keys!)
 openai_api_key.txt
 reinciar_docker.zsh
+export_lovable/
