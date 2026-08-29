@@ -1,0 +1,134 @@
+{
+  "app/config.py": {
+    "mtime": 1768663216.4312313,
+    "seen": 1787410312.7835228,
+    "ast_hash": "b2a3d0bd2433000fc8eafc005d60c360",
+    "semantic_hash": "b2a3d0bd2433000fc8eafc005d60c360"
+  },
+  "app/database.py": {
+    "mtime": 1783780742.9847522,
+    "seen": 1787410312.7835257,
+    "ast_hash": "f434a269fedb1e0932c0d06f88729771",
+    "semantic_hash": "f434a269fedb1e0932c0d06f88729771"
+  },
+  "app/main.py": {
+    "mtime": 1781965523.9435267,
+    "seen": 1787410312.783527,
+    "ast_hash": "611e8d7035c616a5d8a14c87d8263a33",
+    "semantic_hash": "611e8d7035c616a5d8a14c87d8263a33"
+  },
+  "app/models/__init__.py": {
+    "mtime": 1752334414.0,
+    "seen": 1787410312.7835276,
+    "ast_hash": "16172b1b51f6675ad46935cb9836c455",
+    "semantic_hash": "16172b1b51f6675ad46935cb9836c455"
+  },
+  "app/models/sessions.py": {
+    "mtime": 1783781578.9052908,
+    "seen": 1787410312.783528,
+    "ast_hash": "29fee4042584725ba94b75eee53c68bd",
+    "semantic_hash": "29fee4042584725ba94b75eee53c68bd"
+  },
+  "app/models/user.py": {
+    "mtime": 1762610522.0,
+    "seen": 1787410312.7835288,
+    "ast_hash": "303787b50ecd94fb8ef8890313c3eb7b",
+    "semantic_hash": "303787b50ecd94fb8ef8890313c3eb7b"
+  },
+  "app/routes/auth.py": {
+    "mtime": 1766422589.3325074,
+    "seen": 1787410312.7835295,
+    "ast_hash": "546a1b5ff0b9252ef124baf40b100393",
+    "semantic_hash": "546a1b5ff0b9252ef124baf40b100393"
+  },
+  "app/routes/sessions.py": {
+    "mtime": 1781969206.5637069,
+    "seen": 1787410312.78353,
+    "ast_hash": "8e2c7a89554d0d76dd2a07693d692337",
+    "semantic_hash": "8e2c7a89554d0d76dd2a07693d692337"
+  },
+  "app/routes/user.py": {
+    "mtime": 1783783046.9291756,
+    "seen": 1787410312.7835305,
+    "ast_hash": "5fa2c9f41b5338c4c906035e59d5cff9",
+    "semantic_hash": "5fa2c9f41b5338c4c906035e59d5cff9"
+  },
+  "app/schemas/sessions.py": {
+    "mtime": 1783781578.9052908,
+    "seen": 1787410312.7835312,
+    "ast_hash": "6b01a52540b23da4d11370924ebeb618",
+    "semantic_hash": "6b01a52540b23da4d11370924ebeb618"
+  },
+  "app/schemas/user.py": {
+    "mtime": 1765036625.8636863,
+    "seen": 1787410312.7835317,
+    "ast_hash": "49b57be7e57f8f50d6e6ca831e683770",
+    "semantic_hash": "49b57be7e57f8f50d6e6ca831e683770"
+  },
+  "app/services/auth.py": {
+    "mtime": 1781364615.5358694,
+    "seen": 1787410312.7835326,
+    "ast_hash": "6a41403004b12b587474b0c5208aba7f",
+    "semantic_hash": "6a41403004b12b587474b0c5208aba7f"
+  },
+  "app/services/embeddings.py": {
+    "mtime": 1783784739.9112046,
+    "seen": 1787410312.783533,
+    "ast_hash": "568b76eef4f3daed05a164919d74a022",
+    "semantic_hash": "568b76eef4f3daed05a164919d74a022"
+  },
+  "app/services/llm.py": {
+    "mtime": 1781362314.2746308,
+    "seen": 1787410312.7835336,
+    "ast_hash": "832076df630a0a06e40eff393705984f",
+    "semantic_hash": "832076df630a0a06e40eff393705984f"
+  },
+  "app/services/session_processor.py": {
+    "mtime": 1783784739.9112046,
+    "seen": 1787410312.7835343,
+    "ast_hash": "a57bbd376e2336b72250b7308fdd8ed9",
+    "semantic_hash": "a57bbd376e2336b72250b7308fdd8ed9"
+  },
+  "frontend/package.json": {
+    "mtime": 1781965538.2757719,
+    "seen": 1787410312.7835348,
+    "ast_hash": "a17b3c5b0f28160f4132554746d42ad6",
+    "semantic_hash": "a17b3c5b0f28160f4132554746d42ad6"
+  },
+  "frontend/postcss.config.js": {
+    "mtime": 1781965559.3071315,
+    "seen": 1787410312.7835352,
+    "ast_hash": "ef3ba2a81ba19f8ea5ddf625521e96f0",
+    "semantic_hash": "ef3ba2a81ba19f8ea5ddf625521e96f0"
+  },
+  "frontend/src/App.jsx": {
+    "mtime": 1783783058.7573671,
+    "seen": 1787410312.783536,
+    "ast_hash": "091875230089c6c68df197ceb5b5cfe2",
+    "semantic_hash": "091875230089c6c68df197ceb5b5cfe2"
+  },
+  "frontend/src/components/Auth.jsx": {
+    "mtime": 1783783036.8000116,
+    "seen": 1787410312.7835367,
+    "ast_hash": "29deed0f12b3099f9ca5273b569e9688",
+    "semantic_hash": "29deed0f12b3099f9ca5273b569e9688"
+  },
+  "frontend/src/main.jsx": {
+    "mtime": 1781965586.8136094,
+    "seen": 1787410312.7835371,
+    "ast_hash": "54a301507dcdfccf4e5565754374b5dc",
+    "semantic_hash": "54a301507dcdfccf4e5565754374b5dc"
+  },
+  "frontend/tailwind.config.js": {
+    "mtime": 1781965552.9190223,
+    "seen": 1787410312.7835376,
+    "ast_hash": "7fed1694c518a1f650e597f7d8bf5819",
+    "semantic_hash": "7fed1694c518a1f650e597f7d8bf5819"
+  },
+  "frontend/vite.config.js": {
+    "mtime": 1781965545.3738933,
+    "seen": 1787410312.7835383,
+    "ast_hash": "8d2b188cfebc43fd2e6dfcc1ccff8d11",
+    "semantic_hash": "8d2b188cfebc43fd2e6dfcc1ccff8d11"
+  }
+}

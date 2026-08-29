@@ -1,0 +1,275 @@
+{
+  "communities": {
+    "0": [
+      "app_models_sessions",
+      "app_models_sessions_py_base",
+      "app_models_sessions_session",
+      "app_routes_sessions",
+      "app_routes_sessions_create_session",
+      "app_routes_sessions_py_post",
+      "app_routes_sessions_rationale_53",
+      "app_schemas_sessions",
+      "app_schemas_sessions_py_basemodel",
+      "app_schemas_sessions_sessionbase",
+      "app_schemas_sessions_sessioncreate",
+      "app_schemas_sessions_sessionread",
+      "app_schemas_sessions_sessionupdate",
+      "app_services_embeddings",
+      "app_services_embeddings_get_embedding",
+      "app_services_embeddings_rationale_8",
+      "app_services_llm",
+      "app_services_llm_generate_text",
+      "app_services_llm_rationale_1",
+      "app_services_llm_rationale_16",
+      "app_services_session_processor",
+      "app_services_session_processor_process_new_session",
+      "app_services_session_processor_py_asyncsession",
+      "app_services_session_processor_rationale_9"
+    ],
+    "1": [
+      "app_models_user",
+      "app_models_user_py_base",
+      "app_models_user_user",
+      "app_routes_user",
+      "app_routes_user_get_current_user_profile",
+      "app_routes_user_py_asyncsession",
+      "app_routes_user_py_get",
+      "app_routes_user_py_post",
+      "app_routes_user_register_user",
+      "app_schemas_user",
+      "app_schemas_user_py_basemodel",
+      "app_schemas_user_userbase",
+      "app_schemas_user_usercreate",
+      "app_schemas_user_userlogin",
+      "app_services_auth_get_password_hash"
+    ],
+    "2": [
+      "autoprefixer",
+      "frontend_package_devdependencies",
+      "frontend_package_devdependencies_autoprefixer",
+      "frontend_package_devdependencies_postcss",
+      "frontend_package_devdependencies_tailwindcss",
+      "frontend_package_devdependencies_types_react",
+      "frontend_package_devdependencies_types_react_dom",
+      "frontend_package_devdependencies_vite",
+      "frontend_package_devdependencies_vitejs_plugin_react_swc",
+      "frontend_package_json_tailwindcss",
+      "postcss",
+      "types_react",
+      "types_react_dom",
+      "vite",
+      "vitejs_plugin_react_swc"
+    ],
+    "3": [
+      "axios",
+      "clsx",
+      "framer_motion",
+      "frontend_package_dependencies",
+      "frontend_package_dependencies_axios",
+      "frontend_package_dependencies_clsx",
+      "frontend_package_dependencies_framer_motion",
+      "frontend_package_dependencies_lucide_react",
+      "frontend_package_dependencies_react",
+      "frontend_package_dependencies_react_dom",
+      "frontend_package_dependencies_tailwind_merge",
+      "lucide_react",
+      "react",
+      "react_dom",
+      "tailwind_merge"
+    ],
+    "4": [
+      "app_config",
+      "app_database",
+      "app_database_get_db",
+      "app_models_init",
+      "app_routes_auth",
+      "app_routes_auth_login",
+      "app_routes_auth_py_asyncsession",
+      "app_routes_auth_py_post",
+      "app_services_auth",
+      "app_services_auth_create_access_token",
+      "app_services_auth_verify_password",
+      "oauth2passwordrequestform",
+      "timedelta"
+    ],
+    "5": [
+      "frontend_package",
+      "frontend_package_name",
+      "frontend_package_private",
+      "frontend_package_scripts",
+      "frontend_package_scripts_build",
+      "frontend_package_scripts_dev",
+      "frontend_package_scripts_preview",
+      "frontend_package_type",
+      "frontend_package_version"
+    ],
+    "6": [
+      "frontend_src_app",
+      "frontend_src_app_api",
+      "frontend_src_app_app",
+      "frontend_src_app_metriccard",
+      "frontend_src_app_sessionrow",
+      "frontend_src_app_sidebaritem",
+      "frontend_src_components_auth",
+      "frontend_src_components_auth_auth",
+      "frontend_src_main"
+    ],
+    "7": [
+      "app_routes_sessions_delete_session",
+      "app_routes_sessions_get_sessions",
+      "app_routes_sessions_py_asyncsession",
+      "app_routes_sessions_py_get",
+      "app_routes_sessions_rationale_17",
+      "app_routes_sessions_rationale_30",
+      "delete"
+    ],
+    "8": [
+      "app_database_init_db",
+      "app_main",
+      "app_main_lifespan",
+      "app_main_py_get",
+      "app_main_read_root",
+      "fastapi"
+    ],
+    "9": [
+      "frontend_postcss_config"
+    ],
+    "10": [
+      "frontend_tailwind_config"
+    ],
+    "11": [
+      "frontend_vite_config"
+    ],
+    "12": [
+      "tailwindcss_tailwindcss"
+    ]
+  },
+  "cohesion": {
+    "0": 0.15217391304347827,
+    "1": 0.21904761904761905,
+    "2": 0.13333333333333333,
+    "3": 0.13333333333333333,
+    "4": 0.24358974358974358,
+    "5": 0.2222222222222222,
+    "6": 0.2777777777777778,
+    "7": 0.2857142857142857,
+    "8": 0.4666666666666667,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0
+  },
+  "gods": [
+    {
+      "id": "app_services_session_processor_process_new_session",
+      "label": "process_new_session()",
+      "degree": 9
+    },
+    {
+      "id": "app_models_sessions_session",
+      "label": "Session",
+      "degree": 7
+    },
+    {
+      "id": "app_models_user_user",
+      "label": "User",
+      "degree": 7
+    },
+    {
+      "id": "app_routes_auth_login",
+      "label": "login()",
+      "degree": 7
+    },
+    {
+      "id": "app_routes_sessions_create_session",
+      "label": "create_session()",
+      "degree": 6
+    },
+    {
+      "id": "app_routes_user_register_user",
+      "label": "register_user()",
+      "degree": 6
+    },
+    {
+      "id": "app_schemas_sessions_sessioncreate",
+      "label": "SessionCreate",
+      "degree": 6
+    },
+    {
+      "id": "app_routes_sessions_get_sessions",
+      "label": "get_sessions()",
+      "degree": 5
+    },
+    {
+      "id": "app_routes_sessions_delete_session",
+      "label": "delete_session()",
+      "degree": 5
+    },
+    {
+      "id": "app_database_get_db",
+      "label": "get_db()",
+      "degree": 4
+    }
+  ],
+  "surprises": [
+    {
+      "source": "delete_session()",
+      "target": "Session",
+      "source_files": [
+        "app/routes/sessions.py",
+        "app/models/sessions.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "get_sessions()",
+      "target": "Session",
+      "source_files": [
+        "app/routes/sessions.py",
+        "app/models/sessions.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "login()",
+      "target": "User",
+      "source_files": [
+        "app/routes/auth.py",
+        "app/models/user.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "get_current_user_profile()",
+      "target": "User",
+      "source_files": [
+        "app/routes/user.py",
+        "app/models/user.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source"
+    },
+    {
+      "source": "register_user()",
+      "target": "User",
+      "source_files": [
+        "app/routes/user.py",
+        "app/models/user.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

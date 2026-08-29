@@ -1,0 +1,1 @@
+Cuando necesites entender la estructura del repositorio: utiliza Graphify El grafo está aquí: graphify-out/graph.json

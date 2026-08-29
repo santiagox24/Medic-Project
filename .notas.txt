@@ -18,3 +18,8 @@
     Con la ayuda de Antigravity, logramos conectar la interfaz grafica con el backend. Además, se construyo la interfaz grafica del registro y login, la cual se vinculo con sus endpoints, funcionando correctamente. La funcion de crear sesion no funciona correctamente ya que no tiene vinculada la key de la I.A. 
 08/08/26 Sábado:
     Hoy decidimos cambiar el enfoque del programa, ya que el que llevabamos no tenia diferenciacion con cualquier otro modelo de intelige artificial. Este va a ser un programa dirigido a medicos que permita almacenar y analizar la información de los pacientes teniendo la inteligencia artificial como apoyo para el diagnostico y tratamiento de los pacientes. Hay que seguir desarrollandolo. Se utilizo Lovable para pueba de concepto demo. 
+15/08/26 Sábado:
+    Se deja este prompt para la proxima clase "Teniendo en cuenta la prueba de concepto en export_lovable/intellicare-copilot adapta exactamente el frontend y adecua el backend de acuerdo con las funcionalidades del frontend basado en la prueba de concepto. Adicionalmente, reestructura la base de datos que se ubica desplegada en docker. Sientete libre de eliminar datos viejos y reestructurarlo completamente.". Al intentar darle el prompt a Antigravity, no respondio. Se creo un repositorio en github para poder guardar la prueba de concepto hecha por lovable. 
+22/08/26 Sábado:
+    Hoy, se instalo de uv. Se completo la adecuacion de la prueba de concepto utilizando el promt de la calse anterior. Hay que modificar el frontend para que sea mas agradable a la vista y funcional, especialmente la parte de citas y calendario. 
+*FECHA LIMITE ESTIPULADA: 10 DE OCTUBRE. CALENDARIO, ADECUAR FRONTEND, METER LLM, SOLUCIONAR PROBLEMAS QEU SALGAN, Y DESPLEGAR EN INTERNET. 

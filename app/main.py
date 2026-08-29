@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import auth, user,sessions
+from routes import auth, user, clinical
 from database import init_db
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -41,4 +41,4 @@ def read_root():
 
 app.include_router(auth.router)
 app.include_router(user.router)
-app.include_router(sessions.router)
+app.include_router(clinical.router)
