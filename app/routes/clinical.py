@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from database import get_db
 from models.clinical import Appointment, ClinicalSession, Patient
 from models.user import User
-from schemas.clinical import AppointmentCreate, AppointmentRead, ClinicalSessionCreate, ClinicalSessionRead, PatientCreate, PatientRead
+from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, ClinicalSessionCreate, ClinicalSessionRead, PatientCreate, PatientRead
 from routes.user import get_current_user_profile
 
 router = APIRouter(prefix="/clinical", tags=["clinical"])
@@ -18,6 +18,22 @@ async def owned_patient(patient_id: int, clinician_id: str, db: AsyncSession) ->
     patient = (await db.execute(select(Patient).where(Patient.id == patient_id, Patient.clinician_id == clinician_id))).scalar_one_or_none()
     if not patient: raise HTTPException(404, "Paciente no encontrado")
     return patient
+
+async def owned_appointment(appointment_id: int, clinician_id: str, db: AsyncSession) -> Appointment:
+    item = (await db.execute(select(Appointment).where(Appointment.id == appointment_id, Appointment.clinician_id == clinician_id))).scalar_one_or_none()
+    if not item: raise HTTPException(404, "Cita no encontrada")
+    return item
+
+async def ensure_available(scheduled_at: datetime, clinician_id: str, db: AsyncSession, exclude_id: int | None = None):
+    stmt = select(Appointment.id).where(
+        Appointment.clinician_id == clinician_id,
+        Appointment.scheduled_at == scheduled_at,
+        Appointment.status.in_(["Pendiente", "Confirmada"]),
+    )
+    if exclude_id is not None:
+        stmt = stmt.where(Appointment.id != exclude_id)
+    if (await db.execute(stmt)).scalar_one_or_none() is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe una cita activa para esta fecha y hora")
 
 @router.get("/patients", response_model=list[PatientRead])
 async def patients(q: str | None = None, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
@@ -44,13 +60,40 @@ async def create_session(data: ClinicalSessionCreate, clinician_id: str = Depend
     item = ClinicalSession(**data.model_dump(), clinician_id=clinician_id); db.add(item); await db.commit(); await db.refresh(item); return item
 
 @router.get("/appointments", response_model=list[AppointmentRead])
-async def appointments(clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
-    return (await db.execute(select(Appointment).where(Appointment.clinician_id == clinician_id).order_by(Appointment.scheduled_at))).scalars().all()
+async def appointments(patient_id: int | None = None, appointment_status: str | None = None, from_date: datetime | None = None, to_date: datetime | None = None, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    stmt = select(Appointment).where(Appointment.clinician_id == clinician_id)
+    if patient_id is not None: stmt = stmt.where(Appointment.patient_id == patient_id)
+    if appointment_status is not None: stmt = stmt.where(Appointment.status == appointment_status)
+    if from_date is not None: stmt = stmt.where(Appointment.scheduled_at >= from_date)
+    if to_date is not None: stmt = stmt.where(Appointment.scheduled_at <= to_date)
+    return (await db.execute(stmt.order_by(Appointment.scheduled_at))).scalars().all()
+
+@router.get("/appointments/{appointment_id}", response_model=AppointmentRead)
+async def appointment(appointment_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    return await owned_appointment(appointment_id, clinician_id, db)
 
 @router.post("/appointments", response_model=AppointmentRead, status_code=201)
 async def create_appointment(data: AppointmentCreate, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
     await owned_patient(data.patient_id, clinician_id, db)
+    if data.status in {"Pendiente", "Confirmada"}: await ensure_available(data.scheduled_at, clinician_id, db)
     item = Appointment(**data.model_dump(), clinician_id=clinician_id); db.add(item); await db.commit(); await db.refresh(item); return item
+
+@router.patch("/appointments/{appointment_id}", response_model=AppointmentRead)
+async def update_appointment(appointment_id: int, data: AppointmentUpdate, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    item = await owned_appointment(appointment_id, clinician_id, db)
+    changes = data.model_dump(exclude_unset=True)
+    if "patient_id" in changes: await owned_patient(changes["patient_id"], clinician_id, db)
+    scheduled_at = changes.get("scheduled_at", item.scheduled_at)
+    appointment_status = changes.get("status", item.status)
+    if appointment_status in {"Pendiente", "Confirmada"} and ("scheduled_at" in changes or "status" in changes):
+        await ensure_available(scheduled_at, clinician_id, db, appointment_id)
+    for field, value in changes.items(): setattr(item, field, value)
+    await db.commit(); await db.refresh(item); return item
+
+@router.delete("/appointments/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_appointment(appointment_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    item = await owned_appointment(appointment_id, clinician_id, db)
+    await db.delete(item); await db.commit()
 
 @router.get("/dashboard")
 async def dashboard(clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):

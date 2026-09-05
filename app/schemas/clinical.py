@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 class PatientCreate(BaseModel):
@@ -19,8 +20,14 @@ class PatientRead(PatientCreate):
 class AppointmentCreate(BaseModel):
     patient_id: int
     scheduled_at: datetime
-    reason: str
-    status: str = "Pendiente"
+    reason: str = Field(min_length=3, max_length=300)
+    status: Literal["Pendiente", "Confirmada", "Completada", "Cancelada"] = "Pendiente"
+
+class AppointmentUpdate(BaseModel):
+    patient_id: int | None = None
+    scheduled_at: datetime | None = None
+    reason: str | None = Field(default=None, min_length=3, max_length=300)
+    status: Literal["Pendiente", "Confirmada", "Completada", "Cancelada"] | None = None
 
 class AppointmentRead(AppointmentCreate):
     id: int
