@@ -22,4 +22,7 @@
     Se deja este prompt para la proxima clase "Teniendo en cuenta la prueba de concepto en export_lovable/intellicare-copilot adapta exactamente el frontend y adecua el backend de acuerdo con las funcionalidades del frontend basado en la prueba de concepto. Adicionalmente, reestructura la base de datos que se ubica desplegada en docker. Sientete libre de eliminar datos viejos y reestructurarlo completamente.". Al intentar darle el prompt a Antigravity, no respondio. Se creo un repositorio en github para poder guardar la prueba de concepto hecha por lovable. 
 22/08/26 Sábado:
     Hoy, se instalo de uv. Se completo la adecuacion de la prueba de concepto utilizando el promt de la calse anterior. Hay que modificar el frontend para que sea mas agradable a la vista y funcional, especialmente la parte de citas y calendario. 
-*FECHA LIMITE ESTIPULADA: 10 DE OCTUBRE. CALENDARIO, ADECUAR FRONTEND, METER LLM, SOLUCIONAR PROBLEMAS QEU SALGAN, Y DESPLEGAR EN INTERNET. 
+*FECHA LIMITE ESTIPULADA: 10 DE OCTUBRE. CALENDARIO, ADECUAR FRONTEND, METER LLM, SOLUCIONAR PROBLEMAS QUE SALGAN, Y DESPLEGAR EN INTERNET. 
+29/08/26 Sábado:
+    Hoy, con la ayuda de Codex, se intento implementar el calendario. Al hacerlo, Codex rompio los otros endpoint, incluyendo el de nueva sesion y nuevo paciente. Adicionalmente, Docker fallo multiples veces, con errores todavai a solucionar. Para la poroxima clase, pirmero solucionar el problema de docker, y despues seguir con el calendario, el frontend, y demas. 
+*FECHA LIMITE ESTIPULADA: 10 DE OCTUBRE. DOCKER, CALENDARIO, ADECUAR FRONTEND, METER LLM, SOLUCIONAR PROBLEMAS QUE SALGAN, Y DESPLEGAR EN INTERNET. 
