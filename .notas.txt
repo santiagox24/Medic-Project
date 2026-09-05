@@ -26,3 +26,6 @@
 29/08/26 Sábado:
     Hoy, con la ayuda de Codex, se intento implementar el calendario. Al hacerlo, Codex rompio los otros endpoint, incluyendo el de nueva sesion y nuevo paciente. Adicionalmente, Docker fallo multiples veces, con errores todavai a solucionar. Para la poroxima clase, pirmero solucionar el problema de docker, y despues seguir con el calendario, el frontend, y demas. 
 *FECHA LIMITE ESTIPULADA: 10 DE OCTUBRE. DOCKER, CALENDARIO, ADECUAR FRONTEND, METER LLM, SOLUCIONAR PROBLEMAS QUE SALGAN, Y DESPLEGAR EN INTERNET. 
+05/09/2026 Sábado:
+    Hoy, se logró solucionar el problema de Docker. Se tuvo que desinstalar Docker Desktop para instalar Docker Engine, lo cual ayudo a solucionar. Adicionalmente, ya se adecuo el endpoint de appointments(calendario). Para la próxima clase, mejorar login y register, ya que se ven feos.
+*FECHA LIMITE ESTIPULADA: 10 DE OCTUBRE. ADECUAR FRONTEND(LOGIN & REGISTER), METER LLM, SOLUCIONAR PROBLEMAS QUE SALGAN, Y DESPLEGAR EN INTERNET.
