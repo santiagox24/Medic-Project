@@ -31,3 +31,4 @@
 *FECHA LIMITE ESTIPULADA: 10 DE OCTUBRE. ADECUAR FRONTEND(LOGIN & REGISTER), METER LLM, SOLUCIONAR PROBLEMAS QUE SALGAN, Y DESPLEGAR EN INTERNET. 
 12/09/2026 Sábado:
     Hoy, se mejoro el login y register. Ahora se ve mas agradable a la vista y funcional. Para las proximas clases, hay que adecuar toda la página con respecto a las demandas obligatorias que necisitan los medicos. Las imagenes de referendcia para ver los aspectos faltantes esta en el Whatsapp de Santiago. Entre estos estan: agregarle los espacios que faltan a las sesiones, a los nuevos pacientes, poder cargar archivos, y crear una seccion para crear incapacidades y formulas medicas. 
+*NUEVA FECHA LIMITE ESTIPULADA: 7 DE NOVIEMBRE. ESTO ES TENIENDO EN CUENTA LAS NUEVAS MODIFICACIONES. 
