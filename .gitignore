@@ -82,4 +82,5 @@ openai_api_key.txt
 reinciar_docker.zsh
 export_lovable/
 graphify-ouy/*
+graphify-out/
 .agents/*
