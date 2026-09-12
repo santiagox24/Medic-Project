@@ -32,7 +32,9 @@ services:
       - ./.env
     environment:
       DATABASE_URL: ${POSTGRES_URL}
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./app:/code
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
     build:

@@ -17,6 +17,17 @@ class PatientRead(PatientCreate):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
+class PatientUpdate(BaseModel):
+    document: str | None = None
+    full_name: str | None = None
+    birth_date: datetime | None = None
+    sex: str | None = None
+    blood_type: str | None = None
+    phone: str | None = None
+    allergies: list[str] | None = None
+    conditions: list[str] | None = None
+    medications: list[dict] | None = None
+
 class AppointmentCreate(BaseModel):
     patient_id: int
     scheduled_at: datetime

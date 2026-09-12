@@ -13,23 +13,33 @@ import {
   ChevronLeft, 
   Stethoscope, 
   Loader2,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Bot,
+  LogIn,
+  UserPlus,
+  CalendarDays
 } from 'lucide-react';
 
-const Auth = ({ onLoginSuccess, API }) => {
+export default function Auth({ onLoginSuccess, API }) {
   const [isLogin, setIsLogin] = useState(true);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
-  // Login form state
+  // Formulario de login
   const [loginData, setLoginData] = useState({
     username: '',
     password: ''
   });
 
-  // Register form state
+  // Formulario de registro (requeridos por backend)
   const [registerData, setRegisterData] = useState({
     document_id: '',
     username: '',
@@ -41,7 +51,7 @@ const Auth = ({ onLoginSuccess, API }) => {
     gender: 'Masculino',
     address: '',
     city: '',
-    country: ''
+    country: 'Colombia'
   });
 
   const handleLoginChange = (e) => {
@@ -56,14 +66,22 @@ const Auth = ({ onLoginSuccess, API }) => {
     });
   };
 
+  // Autocompletar datos de prueba para desarrollo y testeo rápido
+  const fillDemoLogin = () => {
+    setLoginData({
+      username: 'drsantiago',
+      password: 'password123'
+    });
+    setError('');
+  };
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
-    // Auth token requires x-www-form-urlencoded
+
     const params = new URLSearchParams();
-    params.append('username', loginData.username);
+    params.append('username', loginData.username.trim());
     params.append('password', loginData.password);
 
     try {
@@ -74,15 +92,38 @@ const Auth = ({ onLoginSuccess, API }) => {
       if (access_token) {
         onLoginSuccess(access_token);
       } else {
-        setError('Error al obtener el token de acceso.');
+        setError('No se recibió el token de autorización.');
       }
     } catch (err) {
       console.error(err);
       const detail = err.response?.data?.detail;
-      setError(detail || 'Credenciales inválidas. Por favor intenta de nuevo.');
+      setError(
+        typeof detail === 'string'
+          ? detail
+          : 'Credenciales inválidas. Verifica tu usuario y contraseña.'
+      );
     } finally {
       setLoading(false);
     }
+  };
+
+  const nextRegisterStep = () => {
+    if (
+      !registerData.document_id.trim() ||
+      !registerData.username.trim() ||
+      !registerData.email.trim() ||
+      !registerData.password
+    ) {
+      setError('Por favor completa todos los campos de acceso y seguridad.');
+      return;
+    }
+    setError('');
+    setStep(2);
+  };
+
+  const prevRegisterStep = () => {
+    setError('');
+    setStep(1);
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -91,14 +132,14 @@ const Auth = ({ onLoginSuccess, API }) => {
     setError('');
     setSuccess('');
 
-    // Field verification - everything is mandatory
     const requiredFields = [
       'document_id', 'username', 'email', 'password', 
       'name', 'tel', 'age', 'gender', 'address', 'city', 'country'
     ];
+
     for (const field of requiredFields) {
       if (!registerData[field]) {
-        setError('Por favor, completa todos los campos obligatorios.');
+        setError('Por favor completa todos los campos obligatorios del registro.');
         setLoading(false);
         return;
       }
@@ -107,84 +148,147 @@ const Auth = ({ onLoginSuccess, API }) => {
     try {
       const payload = {
         ...registerData,
-        age: parseInt(registerData.age)
+        document_id: registerData.document_id.trim(),
+        username: registerData.username.trim(),
+        email: registerData.email.trim(),
+        age: parseInt(registerData.age, 10)
       };
-      const response = await API.post('/users/register', payload);
-      setSuccess('Usuario registrado con éxito. Serás redirigido al Login.');
+
+      await API.post('/users/register', payload);
+      setSuccess('¡Registro médico exitoso! Te redirigiremos al inicio de sesión…');
+      
       setTimeout(() => {
         setIsLogin(true);
         setStep(1);
         setLoginData({ username: registerData.username, password: '' });
         setSuccess('');
-      }, 2500);
+      }, 2000);
     } catch (err) {
       console.error(err);
       const detail = err.response?.data?.detail;
-      setError(detail || 'Ocurrió un error al registrar el usuario.');
+      setError(
+        typeof detail === 'string'
+          ? detail
+          : 'Ocurrió un error al registrar el usuario. Revisa los datos ingresados.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const nextStep = () => {
-    // Basic verification for step 1
-    if (
-      !registerData.document_id ||
-      !registerData.username ||
-      !registerData.email ||
-      !registerData.password
-    ) {
-      setError('Por favor completa todos los campos del Paso 1.');
-      return;
-    }
-    setError('');
-    setStep(2);
-  };
-
-  const prevStep = () => {
-    setError('');
+  const switchTab = (toLogin) => {
+    setIsLogin(toLogin);
     setStep(1);
+    setError('');
+    setSuccess('');
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 medical-gradient relative overflow-hidden">
-      {/* Background decorative glows */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-medic-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+    <div className="auth-shell">
+      {/* Elementos decorativos sutiles */}
+      <div className="auth-bg-decor auth-bg-decor-1" />
+      <div className="auth-bg-decor auth-bg-decor-2" />
 
-      <div className="w-full max-w-lg z-10">
-        {/* Header App Title */}
-        <div className="flex flex-col items-center justify-center mb-6">
-          <div className="p-3.5 bg-medic-500 rounded-2xl shadow-xl shadow-medic-500/20 mb-3 animate-pulse">
-            <Stethoscope className="text-white w-8 h-8" />
+      <div className="auth-container">
+        {/* Columna Izquierda: Showcase clínico & Valor */}
+        <aside className="auth-sidebar">
+          <div>
+            <div className="auth-brand">
+              <span className="auth-brand-icon">
+                <Stethoscope size={22} />
+              </span>
+              <div className="auth-brand-text">
+                <b>MedicIA</b>
+                <small>Historia Clínica Inteligente</small>
+              </div>
+            </div>
+
+            <h1 className="auth-hero-title">
+              Gestión médica moderna asistida por Inteligencia Artificial
+            </h1>
+            <p className="auth-hero-desc">
+              Optimiza tus consultas, estructura notas SOAP al instante y accede al historial clínico contextual de tus pacientes en segundos.
+            </p>
+
+            <div className="auth-feature-list">
+              <div className="auth-feature-item">
+                <i><FileText size={17} /></i>
+                <div>
+                  <b>Expedientes y Notas SOAP</b>
+                  <small>Registro integral de signos vitales, antecedentes y evolución de consultas.</small>
+                </div>
+              </div>
+
+              <div className="auth-feature-item">
+                <i><Bot size={17} /></i>
+                <div>
+                  <b>Copiloto Clínico en Vivo</b>
+                  <small>Interacción inteligente con el expediente para resumir diagnósticos y planes.</small>
+                </div>
+              </div>
+
+              <div className="auth-feature-item">
+                <i><CalendarDays size={17} /></i>
+                <div>
+                  <b>Agenda y Citas Centralizadas</b>
+                  <small>Control del flujo de atención, estados y seguimiento puntual de pacientes.</small>
+                </div>
+              </div>
+            </div>
           </div>
-          <h2 className="font-extrabold text-3xl tracking-tight text-white">Medic AI</h2>
-          <p className="text-sm text-slate-400 mt-1">Plataforma Inteligente de Sesiones Clínicas</p>
-        </div>
 
-        <div className="glass-panel p-8 bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl relative">
-          {/* Error and Success notifications */}
+          <div className="auth-sidebar-footer">
+            <ShieldCheck size={16} color="#1876ae" />
+            <span>Entorno clínico seguro · Cifrado de datos médicos</span>
+          </div>
+        </aside>
+
+        {/* Columna Derecha: Formularios de autenticación */}
+        <main className="auth-main">
+          {/* Pestañas de alternancia Iniciar Sesión / Registro */}
+          <nav className="auth-tabs" aria-label="Modo de autenticación">
+            <button
+              type="button"
+              className={`auth-tab-btn ${isLogin ? 'active' : ''}`}
+              onClick={() => switchTab(true)}
+            >
+              <LogIn size={15} />
+              Iniciar Sesión
+            </button>
+            <button
+              type="button"
+              className={`auth-tab-btn ${!isLogin ? 'active' : ''}`}
+              onClick={() => switchTab(false)}
+            >
+              <UserPlus size={15} />
+              Crear Cuenta Médica
+            </button>
+          </nav>
+
+          {/* Notificaciones de error y éxito */}
           <AnimatePresence mode="wait">
             {error && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
+              <motion.div
+                key="alert-error"
+                initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-6 p-4 bg-red-500/15 border border-red-500/30 text-red-200 rounded-xl text-sm flex items-center space-x-2"
+                exit={{ opacity: 0, y: -8 }}
+                className="auth-alert auth-alert-error"
               >
-                <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                <AlertCircle size={17} style={{ flexShrink: 0 }} />
                 <span>{error}</span>
               </motion.div>
             )}
 
             {success && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
+              <motion.div
+                key="alert-success"
+                initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-6 p-4 bg-green-500/15 border border-green-500/30 text-green-200 rounded-xl text-sm flex items-center space-x-2"
+                exit={{ opacity: 0, y: -8 }}
+                className="auth-alert auth-alert-success"
               >
-                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping mr-1"></div>
+                <CheckCircle2 size={17} style={{ flexShrink: 0 }} />
                 <span>{success}</span>
               </motion.div>
             )}
@@ -192,214 +296,256 @@ const Auth = ({ onLoginSuccess, API }) => {
 
           <AnimatePresence mode="wait">
             {isLogin ? (
-              /* LOGIN FORM */
+              /* FORMULARIO DE INICIO DE SESIÓN */
               <motion.div
-                key="login"
-                initial={{ opacity: 0, x: -20 }}
+                key="panel-login"
+                initial={{ opacity: 0, x: -14 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
+                exit={{ opacity: 0, x: 14 }}
+                transition={{ duration: 0.2 }}
               >
-                <div className="mb-6 text-center">
-                  <h3 className="text-xl font-bold text-white">Iniciar Sesión</h3>
-                  <p className="text-slate-400 text-xs mt-1">Ingresa tus credenciales profesionales</p>
+                <div className="auth-form-head">
+                  <h3>Acceso Profesional</h3>
+                  <p>Ingresa tus credenciales para acceder a la historia clínica</p>
                 </div>
 
-                <form onSubmit={handleLoginSubmit} className="space-y-4">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Nombre de Usuario</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-                      <input 
-                        type="text" 
+                <form onSubmit={handleLoginSubmit}>
+                  <div className="auth-field">
+                    <label htmlFor="login-username">Nombre de Usuario</label>
+                    <div className="auth-input-container">
+                      <User className="auth-icon-left" />
+                      <input
+                        id="login-username"
+                        type="text"
                         name="username"
                         required
+                        autoComplete="username"
                         value={loginData.username}
                         onChange={handleLoginChange}
                         placeholder="ej. drsantiago"
-                        className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-12 pr-4 py-3.5 text-white transition-all outline-none"
+                        className="auth-input"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Contraseña</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-                      <input 
-                        type="password" 
+                  <div className="auth-field">
+                    <label htmlFor="login-password">Contraseña</label>
+                    <div className="auth-input-container">
+                      <Lock className="auth-icon-left" />
+                      <input
+                        id="login-password"
+                        type={showLoginPassword ? 'text' : 'password'}
                         name="password"
                         required
+                        autoComplete="current-password"
                         value={loginData.password}
                         onChange={handleLoginChange}
                         placeholder="••••••••"
-                        className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-12 pr-4 py-3.5 text-white transition-all outline-none"
+                        className="auth-input"
+                        style={{ paddingRight: '40px' }}
                       />
+                      <button
+                        type="button"
+                        className="auth-password-toggle"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        title={showLoginPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                        tabIndex="-1"
+                      >
+                        {showLoginPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
                     </div>
                   </div>
 
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={loading}
-                    className="w-full bg-medic-600 hover:bg-medic-500 text-white font-semibold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-medic-900/30 flex items-center justify-center space-x-2 text-base mt-2 disabled:opacity-60"
+                    className="auth-submit-btn"
                   >
                     {loading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <>
+                        <Loader2 size={17} className="animate-spin" />
+                        <span>Verificando credenciales…</span>
+                      </>
                     ) : (
                       <>
-                        <span>Ingresar</span>
-                        <ChevronRight className="w-5 h-5" />
+                        <span>Ingresar al Sistema</span>
+                        <ChevronRight size={17} />
                       </>
                     )}
                   </button>
                 </form>
 
-                <div className="mt-6 text-center border-t border-slate-800/60 pt-4">
-                  <button 
-                    onClick={() => { setIsLogin(false); setStep(1); setError(''); }}
-                    className="text-medic-400 hover:text-medic-300 text-sm font-semibold transition-colors"
-                  >
-                    ¿No tienes una cuenta aún? Regístrate
+                {/* Ayudante demo para desarrollo rápido */}
+                <div className="auth-demo-box">
+                  <span>¿Deseas probar rápidamente?</span>
+                  <button type="button" onClick={fillDemoLogin}>
+                    Cargar usuario demo
                   </button>
                 </div>
               </motion.div>
             ) : (
-              /* REGISTER FORM (2 STEPS) */
+              /* FORMULARIO DE REGISTRO MÉDICO (2 PASOS) */
               <motion.div
-                key="register"
-                initial={{ opacity: 0, x: 20 }}
+                key="panel-register"
+                initial={{ opacity: 0, x: 14 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+                exit={{ opacity: 0, x: -14 }}
+                transition={{ duration: 0.2 }}
               >
-                <div className="mb-5 text-center">
-                  <h3 className="text-xl font-bold text-white">Crear Cuenta Médica</h3>
-                  <div className="flex items-center justify-center space-x-1.5 mt-1.5">
-                    <span className={`w-2 h-2 rounded-full transition-all duration-300 ${step === 1 ? 'bg-medic-500 w-5' : 'bg-slate-700'}`}></span>
-                    <span className={`w-2 h-2 rounded-full transition-all duration-300 ${step === 2 ? 'bg-medic-500 w-5' : 'bg-slate-700'}`}></span>
+                {/* Stepper de progreso */}
+                <div className="auth-stepper">
+                  <div className={`auth-step-node ${step === 1 ? 'active' : 'completed'}`}>
+                    <span className="auth-step-num">1</span>
+                    <span>Acceso & Seguridad</span>
                   </div>
-                  <p className="text-slate-400 text-xs mt-1">
-                    {step === 1 ? "Paso 1: Información de Seguridad y Acceso" : "Paso 2: Datos de Identidad y Contacto"}
-                  </p>
+                  <div className={`auth-step-line ${step === 2 ? 'active' : ''}`} />
+                  <div className={`auth-step-node ${step === 2 ? 'active' : ''}`}>
+                    <span className="auth-step-num">2</span>
+                    <span>Perfil Médico</span>
+                  </div>
                 </div>
 
-                <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                <form onSubmit={handleRegisterSubmit}>
                   {step === 1 ? (
-                    /* STEP 1 FIELDS */
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">N° Documento de Identificación (document_id) *</label>
-                        <div className="relative">
-                          <FileText className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-                          <input 
-                            type="text" 
-                            name="document_id"
-                            required
-                            value={registerData.document_id}
-                            onChange={handleRegisterChange}
-                            placeholder="ej. 1000123456"
-                            className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-12 pr-4 py-3.5 text-white transition-all outline-none"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Nombre de Usuario (username) *</label>
-                        <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-                          <input 
-                            type="text" 
-                            name="username"
-                            required
-                            value={registerData.username}
-                            onChange={handleRegisterChange}
-                            placeholder="ej. drsantiago"
-                            className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-12 pr-4 py-3.5 text-white transition-all outline-none"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Correo Electrónico (email) *</label>
-                        <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-                          <input 
-                            type="email" 
-                            name="email"
-                            required
-                            value={registerData.email}
-                            onChange={handleRegisterChange}
-                            placeholder="ej. doctor@medic.app"
-                            className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-12 pr-4 py-3.5 text-white transition-all outline-none"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Contraseña *</label>
-                        <div className="relative">
-                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-                          <input 
-                            type="password" 
-                            name="password"
-                            required
-                            value={registerData.password}
-                            onChange={handleRegisterChange}
-                            placeholder="••••••••"
-                            className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-12 pr-4 py-3.5 text-white transition-all outline-none"
-                          />
-                        </div>
-                      </div>
-
-                      <button 
-                        type="button" 
-                        onClick={nextStep}
-                        className="w-full bg-medic-600 hover:bg-medic-500 text-white font-semibold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-medic-900/30 flex items-center justify-center space-x-2 text-base mt-2"
-                      >
-                        <span>Siguiente Paso</span>
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    /* STEP 2 FIELDS */
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Nombre Completo *</label>
-                          <input 
-                            type="text" 
-                            name="name"
-                            required
-                            value={registerData.name}
-                            onChange={handleRegisterChange}
-                            placeholder="ej. Santiago Muñoz"
-                            className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl px-4 py-3 text-white transition-all outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Teléfono *</label>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                            <input 
-                              type="tel" 
-                              name="tel"
+                    /* PASO 1: CREDENCIALES */
+                    <div>
+                      <div className="auth-grid-2">
+                        <div className="auth-field">
+                          <label htmlFor="reg-doc">N° Documento *</label>
+                          <div className="auth-input-container">
+                            <FileText className="auth-icon-left" />
+                            <input
+                              id="reg-doc"
+                              type="text"
+                              name="document_id"
                               required
-                              value={registerData.tel}
+                              value={registerData.document_id}
                               onChange={handleRegisterChange}
-                              placeholder="+57 320 1234567"
-                              className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-10 pr-4 py-3 text-white transition-all outline-none"
+                              placeholder="1000123456"
+                              className="auth-input"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="auth-field">
+                          <label htmlFor="reg-username">Usuario *</label>
+                          <div className="auth-input-container">
+                            <User className="auth-icon-left" />
+                            <input
+                              id="reg-username"
+                              type="text"
+                              name="username"
+                              required
+                              autoComplete="username"
+                              value={registerData.username}
+                              onChange={handleRegisterChange}
+                              placeholder="drsantiago"
+                              className="auth-input"
                             />
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Edad *</label>
-                          <div className="relative">
-                            <Activity className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                            <input 
-                              type="number" 
+                      <div className="auth-field">
+                        <label htmlFor="reg-email">Correo Electrónico *</label>
+                        <div className="auth-input-container">
+                          <Mail className="auth-icon-left" />
+                          <input
+                            id="reg-email"
+                            type="email"
+                            name="email"
+                            required
+                            autoComplete="email"
+                            value={registerData.email}
+                            onChange={handleRegisterChange}
+                            placeholder="doctor@medic.app"
+                            className="auth-input"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="auth-field">
+                        <label htmlFor="reg-pass">Contraseña *</label>
+                        <div className="auth-input-container">
+                          <Lock className="auth-icon-left" />
+                          <input
+                            id="reg-pass"
+                            type={showRegisterPassword ? 'text' : 'password'}
+                            name="password"
+                            required
+                            autoComplete="new-password"
+                            value={registerData.password}
+                            onChange={handleRegisterChange}
+                            placeholder="Mínimo 6 caracteres"
+                            className="auth-input"
+                            style={{ paddingRight: '40px' }}
+                          />
+                          <button
+                            type="button"
+                            className="auth-password-toggle"
+                            onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                            title={showRegisterPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                            tabIndex="-1"
+                          >
+                            {showRegisterPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={nextRegisterStep}
+                        className="auth-submit-btn"
+                      >
+                        <span>Continuar: Perfil Profesional</span>
+                        <ChevronRight size={17} />
+                      </button>
+                    </div>
+                  ) : (
+                    /* PASO 2: PERFIL PROFESIONAL Y CONTACTO */
+                    <div>
+                      <div className="auth-grid-2">
+                        <div className="auth-field">
+                          <label htmlFor="reg-name">Nombre Completo *</label>
+                          <input
+                            id="reg-name"
+                            type="text"
+                            name="name"
+                            required
+                            value={registerData.name}
+                            onChange={handleRegisterChange}
+                            placeholder="Dr. Santiago Muñoz"
+                            className="auth-input"
+                            style={{ paddingLeft: '14px' }}
+                          />
+                        </div>
+
+                        <div className="auth-field">
+                          <label htmlFor="reg-tel">Teléfono *</label>
+                          <div className="auth-input-container">
+                            <Phone className="auth-icon-left" />
+                            <input
+                              id="reg-tel"
+                              type="tel"
+                              name="tel"
+                              required
+                              value={registerData.tel}
+                              onChange={handleRegisterChange}
+                              placeholder="+57 320 1234567"
+                              className="auth-input"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="auth-grid-2">
+                        <div className="auth-field">
+                          <label htmlFor="reg-age">Edad *</label>
+                          <div className="auth-input-container">
+                            <Activity className="auth-icon-left" />
+                            <input
+                              id="reg-age"
+                              type="number"
                               name="age"
                               required
                               min="18"
@@ -407,112 +553,117 @@ const Auth = ({ onLoginSuccess, API }) => {
                               value={registerData.age}
                               onChange={handleRegisterChange}
                               placeholder="38"
-                              className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-10 pr-4 py-3 text-white transition-all outline-none"
+                              className="auth-input"
                             />
                           </div>
                         </div>
-                        <div>
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Género *</label>
-                          <select 
+
+                        <div className="auth-field">
+                          <label htmlFor="reg-gender">Género *</label>
+                          <select
+                            id="reg-gender"
                             name="gender"
                             required
                             value={registerData.gender}
                             onChange={handleRegisterChange}
-                            className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl px-4 py-3.5 text-white transition-all outline-none appearance-none cursor-pointer"
+                            className="auth-input"
+                            style={{ paddingLeft: '14px', cursor: 'pointer' }}
                           >
-                            <option value="Masculino" className="bg-slate-900">Masculino</option>
-                            <option value="Femenino" className="bg-slate-900">Femenino</option>
-                            <option value="Otro" className="bg-slate-900">Otro</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="Otro">Otro</option>
                           </select>
                         </div>
                       </div>
 
-                      <div>
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Dirección de Consultorio/Residencia *</label>
-                        <div className="relative">
-                          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                          <input 
-                            type="text" 
+                      <div className="auth-field">
+                        <label htmlFor="reg-address">Dirección de Consultorio / Residencia *</label>
+                        <div className="auth-input-container">
+                          <MapPin className="auth-icon-left" />
+                          <input
+                            id="reg-address"
+                            type="text"
                             name="address"
                             required
                             value={registerData.address}
                             onChange={handleRegisterChange}
                             placeholder="Calle 123 #45-67, Consultorio 401"
-                            className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-10 pr-4 py-3 text-white transition-all outline-none"
+                            className="auth-input"
                           />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Ciudad *</label>
-                          <input 
-                            type="text" 
+                      <div className="auth-grid-2">
+                        <div className="auth-field">
+                          <label htmlFor="reg-city">Ciudad *</label>
+                          <input
+                            id="reg-city"
+                            type="text"
                             name="city"
                             required
                             value={registerData.city}
                             onChange={handleRegisterChange}
                             placeholder="Bogotá"
-                            className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl px-4 py-3 text-white transition-all outline-none"
+                            className="auth-input"
+                            style={{ paddingLeft: '14px' }}
                           />
                         </div>
-                        <div>
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">País *</label>
-                          <div className="relative">
-                            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-                            <input 
-                              type="text" 
+
+                        <div className="auth-field">
+                          <label htmlFor="reg-country">País *</label>
+                          <div className="auth-input-container">
+                            <Globe className="auth-icon-left" />
+                            <input
+                              id="reg-country"
+                              type="text"
                               name="country"
                               required
                               value={registerData.country}
                               onChange={handleRegisterChange}
                               placeholder="Colombia"
-                              className="w-full bg-slate-950/40 border border-slate-700/60 focus:border-medic-500 focus:ring-1 focus:ring-medic-500 rounded-2xl pl-10 pr-4 py-3 text-white transition-all outline-none"
+                              className="auth-input"
                             />
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex space-x-3 pt-2">
-                        <button 
-                          type="button" 
-                          onClick={prevStep}
-                          className="flex-[2] bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold py-3.5 px-4 rounded-2xl transition-all flex items-center justify-center space-x-1.5 text-base"
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={prevRegisterStep}
+                          className="secondary"
+                          style={{ flex: '1', height: '46px', borderRadius: '10px' }}
                         >
-                          <ChevronLeft className="w-5 h-5" />
+                          <ChevronLeft size={16} />
                           <span>Volver</span>
                         </button>
-                        <button 
-                          type="submit" 
+                        <button
+                          type="submit"
                           disabled={loading}
-                          className="flex-[3] bg-medic-600 hover:bg-medic-500 text-white font-semibold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-medic-900/30 flex items-center justify-center space-x-1.5 text-base disabled:opacity-60"
+                          className="auth-submit-btn"
+                          style={{ flex: '2', marginTop: 0 }}
                         >
                           {loading ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <>
+                              <Loader2 size={17} className="animate-spin" />
+                              <span>Registrando médico…</span>
+                            </>
                           ) : (
-                            <span>Finalizar Registro</span>
+                            <>
+                              <span>Finalizar Registro</span>
+                              <CheckCircle2 size={17} />
+                            </>
                           )}
                         </button>
                       </div>
                     </div>
                   )}
                 </form>
-
-                <div className="mt-6 text-center border-t border-slate-800/60 pt-4">
-                  <button 
-                    onClick={() => { setIsLogin(true); setError(''); }}
-                    className="text-medic-400 hover:text-medic-300 text-sm font-semibold transition-colors"
-                  >
-                    ¿Ya tienes una cuenta? Inicia sesión
-                  </button>
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </main>
       </div>
     </div>
   );
-};
-
-export default Auth;
+}

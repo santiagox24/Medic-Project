@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from database import get_db
 from models.clinical import Appointment, ClinicalSession, Patient
 from models.user import User
-from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, ClinicalSessionCreate, ClinicalSessionRead, PatientCreate, PatientRead
+from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, ClinicalSessionCreate, ClinicalSessionRead, PatientCreate, PatientRead, PatientUpdate
 from routes.user import get_current_user_profile
 
 router = APIRouter(prefix="/clinical", tags=["clinical"])
@@ -48,6 +48,20 @@ async def create_patient(data: PatientCreate, clinician_id: str = Depends(clinic
 @router.get("/patients/{patient_id}", response_model=PatientRead)
 async def patient(patient_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
     return await owned_patient(patient_id, clinician_id, db)
+
+@router.patch("/patients/{patient_id}", response_model=PatientRead)
+async def update_patient(patient_id: int, data: PatientUpdate, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    item = await owned_patient(patient_id, clinician_id, db)
+    changes = data.model_dump(exclude_unset=True)
+    for field, value in changes.items():
+        setattr(item, field, value)
+    await db.commit()
+    await db.refresh(item)
+    return item
+
+@router.put("/patients/{patient_id}", response_model=PatientRead)
+async def replace_patient(patient_id: int, data: PatientUpdate, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    return await update_patient(patient_id, data, clinician_id, db)
 
 @router.get("/patients/{patient_id}/sessions", response_model=list[ClinicalSessionRead])
 async def patient_sessions(patient_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
