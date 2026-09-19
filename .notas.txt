@@ -32,3 +32,5 @@
 12/09/2026 Sábado:
     Hoy, se mejoro el login y register. Ahora se ve mas agradable a la vista y funcional. Para las proximas clases, hay que adecuar toda la página con respecto a las demandas obligatorias que necisitan los medicos. Las imagenes de referendcia para ver los aspectos faltantes esta en el Whatsapp de Santiago. Entre estos estan: agregarle los espacios que faltan a las sesiones, a los nuevos pacientes, poder cargar archivos, y crear una seccion para crear incapacidades y formulas medicas. 
 *NUEVA FECHA LIMITE ESTIPULADA: 7 DE NOVIEMBRE. ESTO ES TENIENDO EN CUENTA LAS NUEVAS MODIFICACIONES. 
+19/09/2026 Sábado:
+    El día de hoy, se logró crear el contenedor y la imagen de Docker de los codigos del ICD-11. Todas las imágenes para saber que poner en cada seccion mejorada de la historia clinica quedaron en el Whatsapp entre Santiago y Harold. Quedamos con acceso a Globho, la plataforma de historia clinica que esta siendo usada en parte como inspiracion. Para la siguiente clase, implementar TODAS las 7 secciones de la parte de historia clinica.  
