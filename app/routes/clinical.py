@@ -8,7 +8,7 @@ from sqlalchemy.future import select
 from database import get_db
 from models.clinical import Appointment, ClinicalSession, Patient
 from models.user import User
-from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, ClinicalSessionCreate, ClinicalSessionRead, PatientCreate, PatientRead, PatientUpdate
+from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, ClinicalSessionCreate, ClinicalSessionRead, ICD11SearchResult, PatientCreate, PatientRead, PatientUpdate
 from routes.user import get_current_user_profile
 from config import ICD11_API_URL, ICD11_LANGUAGE, ICD11_RELEASE
 
@@ -31,7 +31,7 @@ def clean_icd11_title(value: str) -> str:
     """The ICD search response highlights matches with HTML <em> tags."""
     return re.sub(r"<[^>]+>", "", value or "").strip()
 
-@router.get("/icd11/search")
+@router.get("/icd11/search", response_model=list[ICD11SearchResult])
 async def search_icd11(q: str, clinician_id: str = Depends(clinician)):
     query = q.strip()
     if len(query) < 2:
@@ -49,8 +49,13 @@ async def search_icd11(q: str, clinician_id: str = Depends(clinician)):
     except httpx.HTTPError:
         raise HTTPException(status_code=503, detail="El servicio ICD-11 no está disponible en este momento")
 
+    try:
+        entities = response.json().get("destinationEntities", [])
+    except ValueError:
+        raise HTTPException(status_code=502, detail="El servicio ICD-11 devolvió una respuesta inválida")
+
     results = []
-    for entity in response.json().get("destinationEntities", []):
+    for entity in entities:
         code = entity.get("theCode") or entity.get("code")
         title = clean_icd11_title(entity.get("title", ""))
         uri = entity.get("id") or entity.get("stemId")

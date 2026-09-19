@@ -26,13 +26,17 @@ services:
     depends_on:
       db:
         condition: service_healthy # This is the fix for "Connection Refused"
+      icd11:
+        # ICD-11 downloads its classification on first use and can restart
+        # before becoming healthy. The API handles that warm-up with a 503.
+        condition: service_started
     ports:
       - "8000:8000"
     env_file:
       - ./.env
     environment:
       DATABASE_URL: ${POSTGRES_URL}
-      ICD11_API_URL: http://icd11:8080
+      ICD11_API_URL: http://icd11:80
       ICD11_RELEASE: 2026-01
       ICD11_LANGUAGE: es
     volumes:
@@ -40,13 +44,20 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   icd11:
-    image: whoicd/icd-api
+    image: whoicd/icd-api:2.6.0
+    restart: unless-stopped
     environment:
       acceptLicense: "true"
       saveAnalytics: "false"
       include: 2026-01_es
     ports:
-      - "8081:8080"
+      - "8081:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://icd11:80/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 45s
 
   frontend:
     build:
