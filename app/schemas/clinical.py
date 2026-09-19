@@ -49,6 +49,9 @@ class ClinicalSessionCreate(BaseModel):
     reason: str
     soap_notes: str
     diagnosis: str | None = None
+    diagnosis_code: str | None = Field(default=None, max_length=32)
+    diagnosis_uri: str | None = Field(default=None, max_length=512)
+    diagnosis_release: str | None = Field(default=None, max_length=32)
     plan: str | None = None
     vitals: dict = Field(default_factory=dict)
     medications: list[dict] = Field(default_factory=list)

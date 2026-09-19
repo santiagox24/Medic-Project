@@ -14,3 +14,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCES_TOKEN_EXPIRE_MINUTES", "15"))
 # Set `MODEL_NAME` in environment to override the default model used by the app
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-5-mini")
+
+ICD11_API_URL = os.getenv("ICD11_API_URL", "http://icd11:8080").rstrip("/")
+ICD11_RELEASE = os.getenv("ICD11_RELEASE", "2026-01")
+ICD11_LANGUAGE = os.getenv("ICD11_LANGUAGE", "es")

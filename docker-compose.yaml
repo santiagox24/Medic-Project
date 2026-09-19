@@ -32,9 +32,21 @@ services:
       - ./.env
     environment:
       DATABASE_URL: ${POSTGRES_URL}
+      ICD11_API_URL: http://icd11:8080
+      ICD11_RELEASE: 2026-01
+      ICD11_LANGUAGE: es
     volumes:
       - ./app:/code
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  icd11:
+    image: whoicd/icd-api
+    environment:
+      acceptLicense: "true"
+      saveAnalytics: "false"
+      include: 2026-01_es
+    ports:
+      - "8081:8080"
 
   frontend:
     build:
