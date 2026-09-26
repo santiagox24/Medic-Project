@@ -167,8 +167,12 @@ async def delete_appointment(appointment_id: int, clinician_id: str = Depends(cl
 @router.get("/dashboard")
 async def dashboard(clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
     patients_count = (await db.execute(select(func.count(Patient.id)).where(Patient.clinician_id == clinician_id))).scalar_one()
-    today = datetime.now(timezone.utc).date()
-    appointments_count = (await db.execute(select(func.count(Appointment.id)).where(Appointment.clinician_id == clinician_id, func.date(Appointment.scheduled_at) == today))).scalar_one()
+    now = datetime.now(timezone.utc)
+    appointments_count = (await db.execute(select(func.count(Appointment.id)).where(
+        Appointment.clinician_id == clinician_id,
+        Appointment.scheduled_at >= now,
+        Appointment.status.in_(["Pendiente", "Confirmada"]),
+    ))).scalar_one()
     return {"patients": patients_count, "appointments_today": appointments_count, "alerts": 0, "adherence": None}
 
 @router.post("/copilot/{patient_id}")
