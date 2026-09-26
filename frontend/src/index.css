@@ -76,6 +76,7 @@ select{width:100%;border:1px solid #d8e3eb;border-radius:7px;padding:9px;margin-
 .patient-header-info{flex:1;min-width:0}
 .modal-backdrop{position:fixed;inset:0;background:rgba(20,38,58,0.45);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;animation:modalFade .2s ease}
 .modal-card{background:#ffffff;border-radius:18px;border:1px solid #e2eaf1;box-shadow:0 24px 50px -12px rgba(25,49,77,0.22);width:100%;max-width:760px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;animation:modalSlide .22s ease}
+.patient-edit-modal{max-width:1120px}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #e7eff5;background:#ffffff}
 .modal-header h2{font-size:16px;font-weight:700;color:#18314e;margin:0;display:flex;align-items:center;gap:9px}
 .modal-body{padding:22px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}

@@ -107,7 +107,9 @@ async def update_patient(patient_id: int, data: PatientUpdate, clinician_id: str
         setattr(item, field, value)
     if any(field in changes for field in PATIENT_NAME_FIELDS):
         values = {field: getattr(item, field) for field in PATIENT_NAME_FIELDS}
-        item.full_name = patient_display_name(values, item.full_name)
+        # A client can submit the legacy full_name together with the structured
+        # fields. Use that value as fallback so both representations stay in sync.
+        item.full_name = patient_display_name(values, changes.get("full_name", item.full_name))
     await db.commit()
     await db.refresh(item)
     return item
