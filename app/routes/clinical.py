@@ -27,6 +27,13 @@ async def owned_appointment(appointment_id: int, clinician_id: str, db: AsyncSes
     if not item: raise HTTPException(404, "Cita no encontrada")
     return item
 
+PATIENT_NAME_FIELDS = ("first_name", "second_name", "first_surname", "second_surname")
+
+def patient_display_name(values: dict, fallback: str = "") -> str:
+    """Build the compatible display name from the structured intake fields."""
+    name = " ".join(str(values.get(field) or "").strip() for field in PATIENT_NAME_FIELDS).strip()
+    return name or str(values.get("full_name") or fallback).strip()
+
 def clean_icd11_title(value: str) -> str:
     """The ICD search response highlights matches with HTML <em> tags."""
     return re.sub(r"<[^>]+>", "", value or "").strip()
@@ -84,7 +91,9 @@ async def patients(q: str | None = None, clinician_id: str = Depends(clinician),
 
 @router.post("/patients", response_model=PatientRead, status_code=201)
 async def create_patient(data: PatientCreate, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
-    item = Patient(**data.model_dump(), clinician_id=clinician_id); db.add(item); await db.commit(); await db.refresh(item); return item
+    values = data.model_dump()
+    values["full_name"] = patient_display_name(values)
+    item = Patient(**values, clinician_id=clinician_id); db.add(item); await db.commit(); await db.refresh(item); return item
 
 @router.get("/patients/{patient_id}", response_model=PatientRead)
 async def patient(patient_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
@@ -96,6 +105,9 @@ async def update_patient(patient_id: int, data: PatientUpdate, clinician_id: str
     changes = data.model_dump(exclude_unset=True)
     for field, value in changes.items():
         setattr(item, field, value)
+    if any(field in changes for field in PATIENT_NAME_FIELDS):
+        values = {field: getattr(item, field) for field in PATIENT_NAME_FIELDS}
+        item.full_name = patient_display_name(values, item.full_name)
     await db.commit()
     await db.refresh(item)
     return item
