@@ -96,6 +96,11 @@ class AppointmentRead(AppointmentCreate):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
+class Resolution2706SearchResult(BaseModel):
+    code: str
+    code_with_dots: str | None = None
+    description: str
+
 class ClinicalSessionCreate(BaseModel):
     patient_id: int
     reason: str

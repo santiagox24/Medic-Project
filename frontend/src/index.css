@@ -94,3 +94,5 @@ select{width:100%;border:1px solid #d8e3eb;border-radius:7px;padding:9px;margin-
   .med-item-row{grid-template-columns:1fr;gap:6px}
   .modal-card{max-height:96vh}
 }
+
+.procedure-picker{position:relative}.procedure-hint,.procedure-status,.procedure-selected{margin-top:5px;color:#647b8f;font-weight:400}.procedure-error{margin-top:5px;color:#b3423a}.procedure-selected{color:#1876ae;font-weight:600}.procedure-results{position:absolute;z-index:10;top:100%;left:0;right:0;max-height:230px;overflow-y:auto;margin-top:3px;background:#fff;border:1px solid #bcd9ea;border-radius:8px;box-shadow:0 9px 24px #18354a22}.procedure-results button{display:flex;align-items:baseline;gap:9px;width:100%;border:0;border-bottom:1px solid #e7eef3;padding:10px 12px;background:#fff;color:#334f65;text-align:left;cursor:pointer}.procedure-results button:last-child{border-bottom:0}.procedure-results button:hover,.procedure-results button:focus{background:#edf7fc;outline:0}.procedure-results b{min-width:64px;color:#1876ae;font-size:12px}.procedure-results span{font-size:12px;line-height:1.4}

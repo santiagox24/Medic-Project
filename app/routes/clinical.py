@@ -1,5 +1,9 @@
 from datetime import datetime, timezone
+from functools import lru_cache
+import json
+from pathlib import Path
 import re
+import unicodedata
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
@@ -8,11 +12,12 @@ from sqlalchemy.future import select
 from database import get_db
 from models.clinical import Appointment, ClinicalSession, Patient
 from models.user import User
-from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, ClinicalSessionCreate, ClinicalSessionRead, ICD11SearchResult, PatientCreate, PatientRead, PatientUpdate
+from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, ClinicalSessionCreate, ClinicalSessionRead, ICD11SearchResult, PatientCreate, PatientRead, PatientUpdate, Resolution2706SearchResult
 from routes.user import get_current_user_profile
 from config import ICD11_API_URL, ICD11_LANGUAGE, ICD11_RELEASE
 
 router = APIRouter(prefix="/clinical", tags=["clinical"])
+RESOLUTION_2706_PATH = Path(__file__).resolve().parents[2] / "data_services" / "resolucion_2706_2025.jsonl"
 
 async def clinician(token_user=Depends(get_current_user_profile)):
     return token_user["document_id"]
@@ -37,6 +42,27 @@ def patient_display_name(values: dict, fallback: str = "") -> str:
 def clean_icd11_title(value: str) -> str:
     """The ICD search response highlights matches with HTML <em> tags."""
     return re.sub(r"<[^>]+>", "", value or "").strip()
+
+@lru_cache(maxsize=1)
+def resolution_2706_procedures() -> list[dict]:
+    """Load the local procedure catalogue once, outside the request path."""
+    try:
+        with RESOLUTION_2706_PATH.open(encoding="utf-8") as catalog:
+            return [json.loads(line) for line in catalog if line.strip()]
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError("No fue posible cargar el catálogo de la Resolución 2706 de 2025") from exc
+
+@router.get("/resolution-2706/search", response_model=list[Resolution2706SearchResult])
+async def search_resolution_2706(q: str, clinician_id: str = Depends(clinician)):
+    query = "".join(char for char in unicodedata.normalize("NFD", q.strip().upper()) if unicodedata.category(char) != "Mn")
+    if len(query) < 2:
+        return []
+    try:
+        matches = [item for item in resolution_2706_procedures() if query in item.get("codigo", "").upper() or query in item.get("codigo_con_puntos", "").upper() or query in item.get("descripcion_busqueda", "").upper()]
+    except RuntimeError:
+        raise HTTPException(status_code=503, detail="El catálogo de procedimientos no está disponible en este momento")
+    matches.sort(key=lambda item: (not item.get("codigo", "").upper().startswith(query), not item.get("descripcion_busqueda", "").upper().startswith(query), item.get("codigo", "")))
+    return [{"code": item["codigo"], "code_with_dots": item.get("codigo_con_puntos"), "description": item["descripcion"]} for item in matches[:20]]
 
 @router.get("/icd11/search", response_model=list[ICD11SearchResult])
 async def search_icd11(q: str, clinician_id: str = Depends(clinician)):
