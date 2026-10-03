@@ -23,6 +23,14 @@ async def init_db():
         await conn.execute(text("ALTER TABLE clinical_sessions ADD COLUMN IF NOT EXISTS diagnosis_uri VARCHAR(512)"))
         await conn.execute(text("ALTER TABLE clinical_sessions ADD COLUMN IF NOT EXISTS diagnosis_release VARCHAR(32)"))
         await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_clinical_sessions_diagnosis_code ON clinical_sessions (diagnosis_code)"))
+        session_columns = (
+            ("appointment_id", "INTEGER REFERENCES appointments(id)"),
+            ("service", "VARCHAR(300)"),
+            ("session_data", "JSON DEFAULT '{}'::json"),
+        )
+        for name, definition in session_columns:
+            await conn.execute(text(f"ALTER TABLE clinical_sessions ADD COLUMN IF NOT EXISTS {name} {definition}"))
+        await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_clinical_sessions_appointment_id ON clinical_sessions (appointment_id)"))
         # Patient registration was expanded from a minimal clinical record to
         # the administrative and demographic details used in the intake form.
         patient_columns = (

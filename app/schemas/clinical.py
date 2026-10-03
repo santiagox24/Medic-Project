@@ -103,8 +103,10 @@ class Resolution2706SearchResult(BaseModel):
 
 class ClinicalSessionCreate(BaseModel):
     patient_id: int
+    appointment_id: int | None = None
     reason: str
-    soap_notes: str
+    service: str | None = Field(default=None, max_length=300)
+    soap_notes: str = ""
     diagnosis: str | None = None
     diagnosis_code: str | None = Field(default=None, max_length=32)
     diagnosis_uri: str | None = Field(default=None, max_length=512)
@@ -112,6 +114,9 @@ class ClinicalSessionCreate(BaseModel):
     plan: str | None = None
     vitals: dict = Field(default_factory=dict)
     medications: list[dict] = Field(default_factory=list)
+    # Stores the seven sections of the clinical encounter without flattening
+    # clinically different data into a single narrative field.
+    session_data: dict = Field(default_factory=dict)
 
 class ClinicalSessionRead(ClinicalSessionCreate):
     id: int
@@ -123,3 +128,7 @@ class ICD11SearchResult(BaseModel):
     title: str
     uri: str
     release: str
+
+class CatalogOption(BaseModel):
+    code: str
+    description: str

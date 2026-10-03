@@ -12,12 +12,14 @@ from sqlalchemy.future import select
 from database import get_db
 from models.clinical import Appointment, ClinicalSession, Patient
 from models.user import User
-from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, ClinicalSessionCreate, ClinicalSessionRead, ICD11SearchResult, PatientCreate, PatientRead, PatientUpdate, Resolution2706SearchResult
+from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, CatalogOption, ClinicalSessionCreate, ClinicalSessionRead, ICD11SearchResult, PatientCreate, PatientRead, PatientUpdate, Resolution2706SearchResult
 from routes.user import get_current_user_profile
 from config import ICD11_API_URL, ICD11_LANGUAGE, ICD11_RELEASE
 
 router = APIRouter(prefix="/clinical", tags=["clinical"])
 RESOLUTION_2706_PATH = Path(__file__).resolve().parents[2] / "data_services" / "resolucion_2706_2025.jsonl"
+FINALITY_PATH = Path(__file__).resolve().parents[2] / "data_services" / "finalidad.json"
+EXTERNAL_CAUSE_PATH = Path(__file__).resolve().parents[2] / "data_services" / "causes.json"
 
 async def clinician(token_user=Depends(get_current_user_profile)):
     return token_user["document_id"]
@@ -51,6 +53,28 @@ def resolution_2706_procedures() -> list[dict]:
             return [json.loads(line) for line in catalog if line.strip()]
     except (OSError, json.JSONDecodeError) as exc:
         raise RuntimeError("No fue posible cargar el catálogo de la Resolución 2706 de 2025") from exc
+
+@lru_cache(maxsize=2)
+def local_catalog(path: Path) -> list[dict]:
+    try:
+        with path.open(encoding="utf-8") as catalog:
+            return json.load(catalog)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError("No fue posible cargar el catálogo clínico") from exc
+
+@router.get("/catalogs/finalities", response_model=list[CatalogOption])
+async def finalities(clinician_id: str = Depends(clinician)):
+    try:
+        return [{"code": item["codigo"], "description": item["descripcion"]} for item in local_catalog(FINALITY_PATH)]
+    except RuntimeError:
+        raise HTTPException(status_code=503, detail="El catálogo de finalidades no está disponible")
+
+@router.get("/catalogs/external-causes", response_model=list[CatalogOption])
+async def external_causes(clinician_id: str = Depends(clinician)):
+    try:
+        return [{"code": item["codigo"], "description": item["descripcion"]} for item in local_catalog(EXTERNAL_CAUSE_PATH)]
+    except RuntimeError:
+        raise HTTPException(status_code=503, detail="El catálogo de causas externas no está disponible")
 
 @router.get("/resolution-2706/search", response_model=list[Resolution2706SearchResult])
 async def search_resolution_2706(q: str, clinician_id: str = Depends(clinician)):
@@ -152,6 +176,10 @@ async def patient_sessions(patient_id: int, clinician_id: str = Depends(clinicia
 @router.post("/sessions", response_model=ClinicalSessionRead, status_code=201)
 async def create_session(data: ClinicalSessionCreate, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
     await owned_patient(data.patient_id, clinician_id, db)
+    if data.appointment_id is not None:
+        appointment = await owned_appointment(data.appointment_id, clinician_id, db)
+        if appointment.patient_id != data.patient_id:
+            raise HTTPException(status_code=422, detail="La cita seleccionada no corresponde al paciente de la sesión")
     item = ClinicalSession(**data.model_dump(), clinician_id=clinician_id); db.add(item); await db.commit(); await db.refresh(item); return item
 
 @router.get("/appointments", response_model=list[AppointmentRead])
