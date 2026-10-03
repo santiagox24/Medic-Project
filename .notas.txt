@@ -37,3 +37,6 @@
 26/09/2026 Sábado:
     Se agregaron los nuevos campos requeridos a Nuevo Paciente. Se hicieron correcciones al modificar el expediente y se corrigio un typo para la autorizacion del token. Se realizo un cambio que cuando una cita quede como completada, no sea visible en el dashboard. NOTA: SE DEBE TRATAR LA LOGICA DE LAS SESIONES Y LAS CITAS COMO DEPENDIENTES, YA QUE SE ESTAN COMPORTANDO DE MANERA INDEPENDIENTE. Finalmente, hay que tener en cuenta que campos como ocupacion, causa y de más deben ser consultados por fuentes externas y requieren su propia logica.
 *TRABAJAR EN LA LOGICA DE SESIONES Y CITAS. INTENTAR TRAER TODOS LOS CAMPOS EXTERNOS, COMO OCUPACION, ETC.
+03/10/2026 Sábado:
+    Se implementaron todas las 7 secciones al crear una nueva sesion. Además, ya se trajeron todos los campos externos requeridos. Quedaron dentro de data_services. Dentro de la página, ya se implementaron todos los campos externos. 
+*PARA LA PRÓXIMA CLASE: VERIFICAR LOS CAMPOS EN CONFIGURACION. DISEÑAR Y TERMINAR DE PREPARAR TODO PARA PODER INTRODUCIR EL LLM.
