@@ -34,3 +34,6 @@
 *NUEVA FECHA LIMITE ESTIPULADA: 7 DE NOVIEMBRE. ESTO ES TENIENDO EN CUENTA LAS NUEVAS MODIFICACIONES. 
 19/09/2026 Sábado:
     El día de hoy, se logró crear el contenedor y la imagen de Docker de los codigos del ICD-11. Todas las imágenes para saber que poner en cada seccion mejorada de la historia clinica quedaron en el Whatsapp entre Santiago y Harold. Quedamos con acceso a Globho, la plataforma de historia clinica que esta siendo usada en parte como inspiracion. Para la siguiente clase, implementar TODAS las 7 secciones de la parte de historia clinica.  
+26/09/2026 Sábado:
+    Se agregaron los nuevos campos requeridos a Nuevo Paciente. Se hicieron correcciones al modificar el expediente y se corrigio un typo para la autorizacion del token. Se realizo un cambio que cuando una cita quede como completada, no sea visible en el dashboard. NOTA: SE DEBE TRATAR LA LOGICA DE LAS SESIONES Y LAS CITAS COMO DEPENDIENTES, YA QUE SE ESTAN COMPORTANDO DE MANERA INDEPENDIENTE. Finalmente, hay que tener en cuenta que campos como ocupacion, causa y de más deben ser consultados por fuentes externas y requieren su propia logica.
+*TRABAJAR EN LA LOGICA DE SESIONES Y CITAS. INTENTAR TRAER TODOS LOS CAMPOS EXTERNOS, COMO OCUPACION, ETC.
