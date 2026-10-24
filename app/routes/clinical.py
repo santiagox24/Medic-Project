@@ -11,10 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from database import get_db
 from models.clinical import Appointment, ClinicalSession, Patient
+from models.copilot import CopilotConversation, CopilotMessage
 from models.user import User
 from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, CatalogOption, ClinicalSessionCreate, ClinicalSessionRead, ICD11SearchResult, PatientCreate, PatientRead, PatientUpdate, Resolution2706SearchResult
+from schemas.copilot import CopilotConversationCreate, CopilotConversationDetail, CopilotConversationRead, CopilotMessageCreate, CopilotReply
+from services.copilot_agent import CopilotUnavailableError, index_clinical_session, reindex_patient_context, run_copilot
+from config import ICD11_API_URL, ICD11_LANGUAGE, ICD11_RELEASE, MODEL_NAME, OPENAI_API_KEY
 from routes.user import get_current_user_profile
-from config import ICD11_API_URL, ICD11_LANGUAGE, ICD11_RELEASE
 
 router = APIRouter(prefix="/clinical", tags=["clinical"])
 RESOLUTION_2706_PATH = Path(__file__).resolve().parents[2] / "data_services" / "resolucion_2706_2025.jsonl"
@@ -32,6 +35,16 @@ async def owned_patient(patient_id: int, clinician_id: str, db: AsyncSession) ->
 async def owned_appointment(appointment_id: int, clinician_id: str, db: AsyncSession) -> Appointment:
     item = (await db.execute(select(Appointment).where(Appointment.id == appointment_id, Appointment.clinician_id == clinician_id))).scalar_one_or_none()
     if not item: raise HTTPException(404, "Cita no encontrada")
+    return item
+
+async def owned_copilot_conversation(conversation_id: str, clinician_id: str, db: AsyncSession) -> CopilotConversation:
+    item = (await db.execute(select(CopilotConversation).where(
+        CopilotConversation.id == conversation_id,
+        CopilotConversation.clinician_id == clinician_id,
+    ))).scalar_one_or_none()
+    if not item:
+        raise HTTPException(404, "Conversación del copiloto no encontrada")
+    await owned_patient(item.patient_id, clinician_id, db)
     return item
 
 PATIENT_NAME_FIELDS = ("first_name", "second_name", "first_surname", "second_surname")
@@ -180,7 +193,14 @@ async def create_session(data: ClinicalSessionCreate, clinician_id: str = Depend
         appointment = await owned_appointment(data.appointment_id, clinician_id, db)
         if appointment.patient_id != data.patient_id:
             raise HTTPException(status_code=422, detail="La cita seleccionada no corresponde al paciente de la sesión")
-    item = ClinicalSession(**data.model_dump(), clinician_id=clinician_id); db.add(item); await db.commit(); await db.refresh(item); return item
+    item = ClinicalSession(**data.model_dump(), clinician_id=clinician_id); db.add(item); await db.commit(); await db.refresh(item)
+    # Indexing is best effort: a temporary model/provider failure must not block
+    # clinical documentation from being saved.
+    try:
+        await index_clinical_session(db, item)
+    except Exception:
+        await db.rollback()
+    return item
 
 @router.get("/appointments", response_model=list[AppointmentRead])
 async def appointments(patient_id: int | None = None, appointment_status: str | None = None, from_date: datetime | None = None, to_date: datetime | None = None, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
@@ -229,12 +249,84 @@ async def dashboard(clinician_id: str = Depends(clinician), db: AsyncSession = D
     ))).scalar_one()
     return {"patients": patients_count, "appointments_today": appointments_count, "alerts": 0, "adherence": None}
 
+@router.post("/copilot/conversations", response_model=CopilotConversationRead, status_code=201)
+async def create_copilot_conversation(data: CopilotConversationCreate, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    await owned_patient(data.patient_id, clinician_id, db)
+    item = CopilotConversation(patient_id=data.patient_id, clinician_id=clinician_id, title=data.title, model=MODEL_NAME)
+    db.add(item); await db.commit(); await db.refresh(item)
+    return item
+
+@router.get("/copilot/conversations", response_model=list[CopilotConversationRead])
+async def list_copilot_conversations(patient_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    await owned_patient(patient_id, clinician_id, db)
+    return (await db.execute(select(CopilotConversation).where(
+        CopilotConversation.clinician_id == clinician_id,
+        CopilotConversation.patient_id == patient_id,
+        CopilotConversation.archived.is_(False),
+    ).order_by(CopilotConversation.updated_at.desc()).limit(20))).scalars().all()
+
+@router.get("/copilot/conversations/{conversation_id}", response_model=CopilotConversationDetail)
+async def get_copilot_conversation(conversation_id: str, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    conversation = await owned_copilot_conversation(conversation_id, clinician_id, db)
+    messages = (await db.execute(select(CopilotMessage).where(
+        CopilotMessage.conversation_id == conversation.id,
+    ).order_by(CopilotMessage.created_at, CopilotMessage.id))).scalars().all()
+    return {**CopilotConversationRead.model_validate(conversation).model_dump(), "messages": messages}
+
+@router.post("/copilot/conversations/{conversation_id}/messages", response_model=CopilotReply)
+async def send_copilot_message(conversation_id: str, data: CopilotMessageCreate, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    conversation = await owned_copilot_conversation(conversation_id, clinician_id, db)
+    if conversation.archived:
+        raise HTTPException(status_code=409, detail="La conversación está archivada")
+    patient = await owned_patient(conversation.patient_id, clinician_id, db)
+    history = (await db.execute(select(CopilotMessage).where(
+        CopilotMessage.conversation_id == conversation.id,
+    ).order_by(CopilotMessage.created_at, CopilotMessage.id))).scalars().all()
+    question = data.content.strip()
+    user_message = CopilotMessage(conversation_id=conversation.id, role="user", content=question)
+    db.add(user_message)
+    if not conversation.title:
+        conversation.title = question[:160]
+    await db.commit()
+    try:
+        answer, sources, tool_calls = await run_copilot(db, patient, history, conversation.summary, question)
+    except CopilotUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=502, detail="No fue posible obtener una respuesta del Copiloto IA.")
+    unique_sources = list({(item["type"], str(item["id"])): item for item in sources}.values())
+    assistant_message = CopilotMessage(
+        conversation_id=conversation.id,
+        role="assistant",
+        content=answer,
+        sources=unique_sources,
+        tool_calls=tool_calls,
+    )
+    db.add(assistant_message)
+    all_messages = [*history, user_message, assistant_message]
+    if len(all_messages) > 12:
+        conversation.summary = "\n".join(
+            f"{item.role}: {item.content[:360]}" for item in all_messages[:-12][-16:]
+        )
+    await db.commit(); await db.refresh(assistant_message)
+    return {"conversation_id": conversation.id, "message": assistant_message}
+
+@router.post("/copilot/patients/{patient_id}/reindex")
+async def reindex_copilot_patient(patient_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    await owned_patient(patient_id, clinician_id, db)
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=503, detail="La indexación requiere configurar OPENAI_API_KEY en el backend.")
+    indexed = await reindex_patient_context(db, clinician_id, patient_id)
+    return {"patient_id": patient_id, "indexed_chunks": indexed}
+
 @router.post("/copilot/{patient_id}")
-async def copilot(patient_id: int, payload: dict, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
-    patient = await owned_patient(patient_id, clinician_id, db); question = str(payload.get("question", ""))
-    recent = (await db.execute(select(ClinicalSession).where(ClinicalSession.patient_id == patient.id).order_by(ClinicalSession.created_at.desc()).limit(3))).scalars().all()
-    meds = ", ".join(m.get("name", m.get("nombre", "medicamento")) for m in patient.medications) or "sin medicamentos registrados"
-    answer = f"Contexto de {patient.full_name}: antecedentes: {', '.join(patient.conditions) or 'sin antecedentes registrados'}; alergias: {', '.join(patient.allergies) or 'ninguna registrada'}; tratamiento: {meds}. "
-    if recent: answer += f"La última sesión fue por {recent[0].reason}. "
-    answer += "Este copiloto organiza la información del expediente y requiere validación clínica profesional; no sustituye el juicio médico."
-    return {"answer": answer, "question": question}
+async def legacy_copilot(patient_id: int, payload: dict, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    """Compatibility endpoint while clients migrate to persistent conversations."""
+    question = str(payload.get("question", "")).strip()
+    if not question:
+        raise HTTPException(status_code=422, detail="Ingrese una pregunta para el Copiloto IA.")
+    conversation = CopilotConversation(patient_id=patient_id, clinician_id=clinician_id, title=question[:160], model=MODEL_NAME)
+    await owned_patient(patient_id, clinician_id, db)
+    db.add(conversation); await db.commit(); await db.refresh(conversation)
+    reply = await send_copilot_message(conversation.id, CopilotMessageCreate(content=question), clinician_id, db)
+    return {"answer": reply.message.content, "question": question, "conversation_id": conversation.id}
