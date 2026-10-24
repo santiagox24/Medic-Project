@@ -40,3 +40,5 @@
 03/10/2026 Sábado:
     Se implementaron todas las 7 secciones al crear una nueva sesion. Además, ya se trajeron todos los campos externos requeridos. Quedaron dentro de data_services. Dentro de la página, ya se implementaron todos los campos externos. 
 *PARA LA PRÓXIMA CLASE: VERIFICAR LOS CAMPOS EN CONFIGURACION. DISEÑAR Y TERMINAR DE PREPARAR TODO PARA PODER INTRODUCIR EL LLM.
+24/10/2026 Sábado:
+    Se implemento el LLM en la página. Toca seguir probandolo y mejorar la interfaz. Finalmente, terminar de mejorar la página basado en las recomendaciones de los doctores.
