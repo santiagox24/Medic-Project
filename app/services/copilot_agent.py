@@ -7,6 +7,7 @@ so clinical messages are not persisted as a provider-side conversation.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from typing import Any
 
 from openai import AsyncOpenAI
@@ -85,8 +86,19 @@ def _clip(value: Any, limit: int = 1600) -> str:
 
 
 def patient_snapshot(patient: Patient) -> dict[str, Any]:
+    birth_date = patient.birth_date.date() if patient.birth_date else None
+    today = datetime.now(timezone.utc).date()
+    age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day)) if birth_date else None
     return {
         "patient_name": patient.full_name,
+        "birth_date": birth_date.isoformat() if birth_date else None,
+        "age": age,
+        "gender": patient.gender,
+        "city": patient.city,
+        "regime": patient.regime,
+        "eps": patient.administrator,
+        "phone": patient.phone,
+        "address": patient.address,
         "allergies": patient.allergies or [],
         "conditions": patient.conditions or [],
         "medications": patient.medications or [],
