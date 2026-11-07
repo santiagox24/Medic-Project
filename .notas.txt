@@ -45,27 +45,30 @@
 
 07/11/2026 Sábado:
     Adentrandonos en el tema de la seguridad, necesitamos los siguientes requisitos: • Estándar de Interoperabilidad (HL7 FHIR): No diseñes tablas de base de datos desde cero para la parte clínica. Estructura tus datos bajo el estándar HL7 FHIR R4 (Fast Healthcare Interoperability Resources). En Colombia, el Ministerio de Salud exige que los datos se expongan a la plataforma centralizada IHCE mediante el Resumen Digital de Atención en Salud (RDA) en formato JSON/FHIR.
-• Segregación de Bases de Datos: Separa los datos de identificación personal (nombres, cédula, contacto) de los datos puramente clínicos (diagnósticos CIE-10/CIE-11, antecedentes, notas médicas). Utiliza un identificador único anonimizado (un UUID) para vincularlos internamente. Esto reduce el impacto si ocurre una filtración de datos.
-• Inmutabilidad (No Borrado): Una historia clínica nunca se borra ni se modifica directamente. Si el médico comete un error, el sistema debe permitir una "nota de corrección" o adición. En la base de datos, el registro original se marca como inactivo o corregido, pero se conserva el historial intacto (patrón Event Sourcing o tablas de auditoría estrictas).
+    • Segregación de Bases de Datos: Separa los datos de identificación personal (nombres, cédula, contacto) de los datos puramente clínicos (diagnósticos CIE-10/CIE-11, antecedentes, notas médicas). Utiliza un identificador único anonimizado (un UUID) para vincularlos internamente. Esto reduce el impacto si ocurre una filtración de datos.
+    • Inmutabilidad (No Borrado): Una historia clínica nunca se borra ni se modifica directamente. Si el médico comete un error, el sistema debe permitir una "nota de corrección" o adición. En la base de datos, el registro original se marca como inactivo o corregido, pero se conserva el historial intacto (patrón Event Sourcing o tablas de auditoría estrictas).
 
-• Cifrado en Reposo (At-Rest): Toda la base de datos, los respaldos (backups) y los archivos adjuntos (como PDFs de exámenes o imágenes médicas) deben almacenarse cifrados utilizando algoritmos avanzados como AES-256.
-• Cifrado en Tránsito (In-Transit): Cualquier comunicación entre el navegador del médico, la app móvil y tus servidores debe viajar obligatoriamente a través de HTTPS con TLS 1.3 (deshabilitando versiones antiguas y vulnerables como TLS 1.0 o 1.1).
+    • Cifrado en Reposo (At-Rest): Toda la base de datos, los respaldos (backups) y los archivos adjuntos (como PDFs de exámenes o imágenes médicas) deben almacenarse cifrados utilizando algoritmos avanzados como AES-256.
+    •Cifrado en Tránsito (In-Transit): Cualquier comunicación entre el navegador del médico, la app móvil y tus servidores debe viajar obligatoriamente a través de HTTPS con TLS 1.3 (deshabilitando versiones antiguas y vulnerables como TLS 1.0 o 1.1).
 
-• Autenticación Robusta: Implementa obligatoriamente Autenticación de Doble Factor (2FA) para los profesionales de la salud. Se puede realizar mediante aplicaciones de autenticación (TOTP), códigos al correo o llaves físicas.
-• Control de Acceso Basado en Roles (RBAC): Define permisos granulares:
+    • Autenticación Robusta: Implementa obligatoriamente Autenticación de Doble Factor (2FA) para los profesionales de la salud. Se puede realizar mediante aplicaciones de autenticación (TOTP), códigos al correo o llaves físicas.
+    • Control de Acceso Basado en Roles (RBAC): Define permisos granulares:
 	• Médico/Enfermero: Acceso total de lectura y escritura durante la consulta.
 	• Personal Administrativo/Facturación: Acceso únicamente a datos demográficos y de aseguramiento; bloqueo total a las notas clínicas y diagnósticos.
 	• Paciente: Acceso exclusivo de lectura a sus propios resúmenes clínicos.
-• Bitácora de Auditoría Completa (Audit Logs): El sistema debe registrar en una base de datos de "solo lectura" (preferiblemente un clúster de logs separado e inmutable) cada evento con el estándar de la W3C o esquemas FHIR AuditEvent. Cada registro debe incluir:
+    • Bitácora de Auditoría Completa (Audit Logs): El sistema debe registrar en una base de datos de "solo lectura" (preferiblemente un clúster de logs separado e inmutable) cada evento con el estándar de la W3C o esquemas FHIR AuditEvent. Cada registro debe incluir:
 	• Quién: ID del usuario y rol.
 	• Qué hizo: Leer, crear, modificar o exportar/imprimir una historia clínica.
 	• A quién: ID del paciente consultado.
 	• Cuándo: Fecha y hora exacta del servidor (sincronizada por NTP).
 	• Desde dónde: Dirección IP y agente de usuario (dispositivo).
 
-• Estrategia de Copias de Seguridad (Regla 3-2-1):
+    •Estrategia de Copias de Seguridad (Regla 3-2-1):
 	• Mantén al menos 3 copias de los datos.
 	• Almacénalas en 2 medios diferentes (por ejemplo, bases de datos transaccionales y almacenamiento de objetos como AWS S3 o Azure Blob con políticas de retención WORM - Write Once, Read Many).
 	• Conserva 1 copia fuera de línea o en una región de la nube geográficamente distinta para recuperación ante desastres (Disaster Recovery).
-• Firma Digital / Electrónica: Al cerrar una consulta médica, el registro debe firmarse electrónicamente mediante un certificado digital o un mecanismo equivalente que garantice el no repudio (que el médico no pueda negar que él realizó esa atención) y la integridad del documento desde el momento de su cierre.
-• Políticas de Retención Automática: Configura reglas en tu almacenamiento para garantizar la retención por los 15 años mínimos exigidos por la ley colombiana, evitando que un administrador del sistema pueda purgar esos datos antes de tiempo de forma accidental o malintencionada.
+    • Firma Digital / Electrónica: Al cerrar una consulta médica, el registro debe firmarse electrónicamente mediante un certificado digital o un mecanismo equivalente que garantice el no repudio (que el médico no pueda negar que él realizó esa atención) y la integridad del documento desde el momento de su cierre.
+    • Políticas de Retención Automática: Configura reglas en tu almacenamiento para garantizar la retención por los 15 años mínimos exigidos por la ley colombiana, evitando que un administrador del sistema pueda purgar esos datos antes de tiempo de forma accidental o malintencionada.
+
+
+    En la clase de hoy logramos implementar la herramienta para subir PDFs e imagenes. Cualquier tipo de archivo. Además, se puso un boton para poder ver todos los expedientes del paciente. Falta implementar para que las sesiones se puedan pasar a PDFs. Tambien, organizar la experiencia de usuario para el chat con el agente. Ademas, toca implementar el campo para hacer incapacidades y formulas. 
