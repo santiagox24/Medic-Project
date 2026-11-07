@@ -4,6 +4,12 @@ import json
 from pathlib import Path
 import re
 import unicodedata
+from uuid import uuid4
+from fastapi import File, Form, UploadFile
+from fastapi.responses import FileResponse
+from models.attachment import PatientAttachment
+from services.attachments import attachment_path, support_status
+from config import ATTACHMENT_MAX_BYTES
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
@@ -15,7 +21,7 @@ from models.copilot import CopilotConversation, CopilotMessage
 from models.user import User
 from schemas.clinical import AppointmentCreate, AppointmentRead, AppointmentUpdate, CatalogOption, ClinicalSessionCreate, ClinicalSessionRead, ICD11SearchResult, PatientCreate, PatientRead, PatientUpdate, Resolution2706SearchResult
 from schemas.copilot import CopilotConversationCreate, CopilotConversationDetail, CopilotConversationRead, CopilotMessageCreate, CopilotReply
-from services.copilot_agent import CopilotUnavailableError, index_clinical_session, reindex_patient_context, run_copilot
+from services.copilot_agent import CopilotAttachmentError, CopilotUnavailableError, index_clinical_session, reindex_patient_context, run_copilot
 from config import ICD11_API_URL, ICD11_LANGUAGE, ICD11_RELEASE, MODEL_NAME, OPENAI_API_KEY
 from routes.user import get_current_user_profile
 
@@ -145,6 +151,85 @@ async def ensure_available(scheduled_at: datetime, clinician_id: str, db: AsyncS
         stmt = stmt.where(Appointment.id != exclude_id)
     if (await db.execute(stmt)).scalar_one_or_none() is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe una cita activa para esta fecha y hora")
+
+def attachment_data(item: PatientAttachment) -> dict:
+    return {"id": item.id, "patient_id": item.patient_id, "site": item.site,
+            "original_name": item.original_name, "size": item.size,
+            "content_type": item.content_type, "created_at": item.created_at,
+            "agent_status": support_status(item)}
+
+
+async def owned_attachment(patient_id: int, attachment_id: int, clinician_id: str, db: AsyncSession):
+    await owned_patient(patient_id, clinician_id, db)
+    item = (await db.execute(select(PatientAttachment).where(
+        PatientAttachment.id == attachment_id, PatientAttachment.patient_id == patient_id,
+        PatientAttachment.clinician_id == clinician_id))).scalar_one_or_none()
+    if not item:
+        raise HTTPException(404, "Anexo no encontrado")
+    return item
+
+
+@router.get("/patients/{patient_id}/attachments")
+async def list_attachments(patient_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    await owned_patient(patient_id, clinician_id, db)
+    items = (await db.execute(select(PatientAttachment).where(
+        PatientAttachment.patient_id == patient_id, PatientAttachment.clinician_id == clinician_id
+    ).order_by(PatientAttachment.created_at.desc(), PatientAttachment.id.desc()))).scalars().all()
+    return [attachment_data(item) for item in items]
+
+
+@router.post("/patients/{patient_id}/attachments", status_code=201)
+async def upload_attachment(patient_id: int, file: UploadFile = File(...), site: str = Form(...),
+                            clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    await owned_patient(patient_id, clinician_id, db)
+    site = site.strip()
+    name = (file.filename or '').replace('\\', '/').split('/')[-1].strip()
+    if not site or len(site) > 128 or not name or len(name) > 255 or any(ord(c) < 32 for c in name):
+        raise HTTPException(422, "Indique una sede y un nombre de archivo válidos.")
+    item = PatientAttachment(patient_id=patient_id, clinician_id=clinician_id, site=site,
+        original_name=name, storage_key=str(uuid4()), content_type=(file.content_type or 'application/octet-stream')[:255], size=0)
+    path = attachment_path(item)
+    try:
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        with path.open('xb') as output:
+            while chunk := await file.read(1024 * 1024):
+                item.size += len(chunk)
+                if item.size > ATTACHMENT_MAX_BYTES:
+                    raise HTTPException(413, "El archivo supera el tamaño máximo permitido.")
+                output.write(chunk)
+        if not item.size:
+            raise HTTPException(422, "El archivo está vacío.")
+        path.chmod(0o600)
+        db.add(item)
+        await db.flush()
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        path.unlink(missing_ok=True)
+        raise
+    finally:
+        await file.close()
+    return attachment_data(item)
+
+
+@router.get("/patients/{patient_id}/attachments/{attachment_id}/download")
+async def download_attachment(patient_id: int, attachment_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    item = await owned_attachment(patient_id, attachment_id, clinician_id, db)
+    path = attachment_path(item)
+    if not path.is_file():
+        raise HTTPException(404, "El archivo no está disponible en el almacenamiento local.")
+    return FileResponse(path, media_type='application/octet-stream', filename=item.original_name,
+                        headers={'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store'})
+
+
+@router.delete("/patients/{patient_id}/attachments/{attachment_id}", status_code=204)
+async def delete_attachment(patient_id: int, attachment_id: int, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
+    item = await owned_attachment(patient_id, attachment_id, clinician_id, db)
+    path = attachment_path(item)
+    path.unlink(missing_ok=True)
+    await db.delete(item)
+    await db.commit()
+
 
 @router.get("/patients", response_model=list[PatientRead])
 async def patients(q: str | None = None, clinician_id: str = Depends(clinician), db: AsyncSession = Depends(get_db)):
@@ -292,6 +377,8 @@ async def send_copilot_message(conversation_id: str, data: CopilotMessageCreate,
         answer, sources, tool_calls = await run_copilot(db, patient, history, conversation.summary, question)
     except CopilotUnavailableError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
+    except CopilotAttachmentError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
     except Exception:
         raise HTTPException(status_code=502, detail="No fue posible obtener una respuesta del Copiloto IA.")
     unique_sources = list({(item["type"], str(item["id"])): item for item in sources}.values())

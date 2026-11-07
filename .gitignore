@@ -84,3 +84,6 @@ export_lovable/
 graphify-ouy/*
 graphify-out/
 .agents/*
+
+# Archivos clínicos locales
+/storage/attachments/

@@ -3,7 +3,7 @@ Simple LLM wrapper for the app.
 Reads `MODEL_NAME` and `OPENAI_API_KEY` from `app/config.py` (or `config.py` depending on runtime path).
 Set environment variable `MODEL_NAME` to change the default model for all clients, e.g.
 
-    export MODEL_NAME="gpt-5-mini"
+    export MODEL_NAME="gpt-5.2"
     export OPENAI_API_KEY="sk-..."
 
 Then call `generate_text(prompt)` to get completions.
