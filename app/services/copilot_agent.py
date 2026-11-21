@@ -31,7 +31,7 @@ class CopilotUnavailableError(RuntimeError):
 
 
 SYSTEM_INSTRUCTIONS = """Eres MedicIA, un copiloto clínico para profesionales de salud.
-Responde siempre en español, de manera clara, concisa y profesional. Tu función es
+Responde siempre en el idioma en el que te hable el usuario, de manera clara, concisa y profesional. Tu función es
 organizar y explicar únicamente la información del expediente que el backend te
 proporciona. No inventes hechos, diagnósticos, dosis ni resultados. Distingue los
 hechos documentados de las inferencias y señala cuando falte información.
